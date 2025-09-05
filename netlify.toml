@@ -1,0 +1,23 @@
+[build]
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "esbuild"
+
+[functions."process-guardianship"]
+  external_node_modules = ["pdf-lib"]
+
+[functions."process-conservatorship"]
+  external_node_modules = ["pdf-lib"]
+
+[[headers]]
+  for = "/.netlify/functions/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Headers = "Content-Type"
+    Access-Control-Allow-Methods = "POST, OPTIONS"
+
+[dev]
+  port = 8888
+  functionsPort = 9999
+
