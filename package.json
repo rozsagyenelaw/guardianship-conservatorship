@@ -1,0 +1,8 @@
+{
+  "name": "guardianship-conservatorship-forms",
+  "version": "1.0.0",
+  "dependencies": {
+    "pdf-lib": "^1.17.1",
+    "node-fetch": "^2.6.7"
+  }
+}
