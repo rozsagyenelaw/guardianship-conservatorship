@@ -1248,39 +1248,64 @@
             document.getElementById('guardianshipBtn').classList.toggle('active', type === 'guardianship');
             document.getElementById('conservatorshipBtn').classList.toggle('active', type === 'conservatorship');
             
-            // Show/hide form sections
+            // Get all form sections
             const guardianshipSections = document.getElementById('guardianshipSections');
             const conservatorshipSections = document.getElementById('conservatorshipSections');
             
             if (type === 'guardianship') {
+                // Show guardianship, hide conservatorship
                 guardianshipSections.style.display = 'block';
                 conservatorshipSections.style.display = 'none';
-                // Show shared sections
-                document.querySelectorAll('.form-section.active').forEach(section => {
-                    if (!section.closest('#conservatorshipSections')) {
+                
+                // Enable guardianship fields, disable conservatorship fields
+                guardianshipSections.querySelectorAll('input, select, textarea').forEach(field => {
+                    field.disabled = false;
+                });
+                conservatorshipSections.querySelectorAll('input, select, textarea').forEach(field => {
+                    field.disabled = true;
+                });
+                
+                // Show all active sections within guardianship
+                document.querySelectorAll('#guardianshipSections .form-section').forEach(section => {
+                    if (section.classList.contains('active')) {
                         section.style.display = 'block';
                     }
                 });
             } else {
+                // Show conservatorship, hide guardianship
                 guardianshipSections.style.display = 'none';
                 conservatorshipSections.style.display = 'block';
-                // Show conservatorship sections
+                
+                // Disable guardianship fields, enable conservatorship fields
+                guardianshipSections.querySelectorAll('input, select, textarea').forEach(field => {
+                    field.disabled = true;
+                });
+                conservatorshipSections.querySelectorAll('input, select, textarea').forEach(field => {
+                    field.disabled = false;
+                });
+                
+                // Show all sections within conservatorship
                 document.querySelectorAll('#conservatorshipSections .form-section').forEach(section => {
                     section.style.display = 'block';
                 });
-                // Show shared sections
-                document.querySelectorAll('.form-section.active').forEach(section => {
-                    if (!section.closest('#guardianshipSections')) {
-                        section.style.display = 'block';
-                    }
-                });
             }
             
-            // Clear form
-            document.getElementById('gcForm').reset();
-            document.getElementById('formType').value = type;
+            // Always show shared active sections and enable their fields
+            document.querySelectorAll('.form-section.active').forEach(section => {
+                if (!section.closest('#guardianshipSections') && !section.closest('#conservatorshipSections')) {
+                    section.style.display = 'block';
+                    section.querySelectorAll('input, select, textarea').forEach(field => {
+                        field.disabled = false;
+                    });
+                }
+            });
             
-            // Reset minors
+            // Clear form but preserve the form type
+            const savedFormType = type;
+            document.getElementById('gcForm').reset();
+            document.getElementById('formType').value = savedFormType;
+            
+            // Reset minors for guardianship
             if (type === 'guardianship') {
                 document.getElementById('minorsContainer').innerHTML = '';
                 minorCount = 0;
@@ -1417,10 +1442,10 @@
             alert('Form filled with test data for Guardianship. Click "Generate Forms" to test!');
         }
         
-        // Initialize with guardianship form and one minor
+        // Initialize on page load
         window.onload = function() {
+            // Start with guardianship
             selectFormType('guardianship');
-            addMinor();
         };
         
         document.getElementById('gcForm').addEventListener('submit', async (e) => {
@@ -1438,27 +1463,27 @@
             const formData = new FormData(e.target);
             const data = {};
             
-            // Process form fields
-            for (let [key, value] of formData.entries()) {
-                data[key] = value;
-            }
-            
-        // Process minors data for guardianship
-if (currentFormType === 'guardianship') {
-    const minorsData = [];
-    const minorElements = document.querySelectorAll('.minor-entry');
-    minorElements.forEach(minorEl => {
-        const id = minorEl.id.replace('minor_', '');
-        const name = document.querySelector(`input[name="minor_name_${id}"]`)?.value;
-        const dob = document.querySelector(`input[name="minor_dob_${id}"]`)?.value;
-        const address = document.querySelector(`input[name="minor_address_${id}"]`)?.value;
-        const school = document.querySelector(`input[name="minor_school_${id}"]`)?.value;
-        
-        if (name && dob) {
-            minorsData.push(`${name},${dob},${address},${school || ''}`);
-        }
-    });
-    data.minors_list = minorsData.join('\n');
+                 // Process form fields (skip disabled fields automatically)
+           for (let [key, value] of formData.entries()) {
+               data[key] = value;
+           }
+           
+           // Process minors data for guardianship
+           if (currentFormType === 'guardianship') {
+               const minorsData = [];
+               const minorElements = document.querySelectorAll('.minor-entry');
+               minorElements.forEach(minorEl => {
+                   const id = minorEl.id.replace('minor_', '');
+                   const name = document.querySelector(`input[name="minor_name_${id}"]`)?.value;
+                   const dob = document.querySelector(`input[name="minor_dob_${id}"]`)?.value;
+                   const address = document.querySelector(`input[name="minor_address_${id}"]`)?.value;
+                   const school = document.querySelector(`input[name="minor_school_${id}"]`)?.value;
+                   
+                   if (name && dob) {
+                       minorsData.push(`${name},${dob},${address},${school || ''}`);
+                   }
+               });
+               data.minors_list = minorsData.join('\n');
            }
            
            try {
