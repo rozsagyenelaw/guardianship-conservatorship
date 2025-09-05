@@ -1,8 +1,34 @@
 {
-  "name": "guardianship-conservatorship-forms",
+  "name": "guardianship-conservatorship-automation",
   "version": "1.0.0",
+  "description": "California Guardianship & Conservatorship Forms PDF Automation System",
+  "main": "netlify/functions/process-guardianship.js",
+  "scripts": {
+    "dev": "netlify dev",
+    "test": "node test-local.js"
+  },
   "dependencies": {
     "pdf-lib": "^1.17.1",
     "node-fetch": "^2.6.7"
-  }
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.10.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rozsagyenelaw/guardianship-conservatorship.git"
+  },
+  "keywords": [
+    "guardianship",
+    "conservatorship",
+    "california",
+    "legal",
+    "pdf",
+    "automation",
+    "netlify",
+    "serverless",
+    "GC-forms"
+  ],
+  "author": "Rozsa Gyene Law",
+  "license": "MIT"
 }
