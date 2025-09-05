@@ -1,0 +1,1498 @@
+// GC-310 Form Filler Function (Adult Conservatorship)
+async function fillGC310(data, pdfBytes) {
+  try {
+    const pdfDoc = await PDFDocument.load(pdfBytes);
+    const form = pdfDoc.getForm();
+    
+    console.log(`GC-310 has ${form.getFields().length} fields available`);
+    
+    // PAGE 1 HEADER - Attorney Information
+    const attorneyFields = {
+      'topmostSubform[0].Page1[0].StdP1Header_sf[0].AttyInfo[0].AttyName_ft[0]': data.attorney.name,
+      'topmostSubform[0].Page1[0].StdP1Header_sf[0].AttyInfo[0].AttyBarNo_dc[0]': data.attorney.bar_number,
+      'topmostSubform[0].Page1[0].StdP1Header_sf[0].AttyInfo[0].AttyFirm_ft[0]': data.attorney.firm_name,
+      'topmostSubform[0].Page1[0].StdP1Header_sf[0].AttyInfo[0].AttyStreet_ft[0]': data.attorney.street,
+      'topmostSubform[0].Page1[0].StdP1Header_sf[0].AttyInfo[0].AttyCity_ft[0]': data.attorney.city,
+      'topmostSubform[0].Page1[0].StdP1Header_sf[0].AttyInfo[0].AttyState_ft[0]': data.attorney.state,
+      'topmostSubform[0].Page1[0].StdP1Header_sf[0].AttyInfo[0].AttyZip_ft[0]': data.attorney.zip,
+      'topmostSubform[0].Page1[0].StdP1Header_sf[0].AttyInfo[0].Phone_ft[0]': data.attorney.phone,
+      'topmostSubform[0].Page1[0].StdP1Header_sf[0].AttyInfo[0].Fax_ft[0]': data.attorney.fax,
+      'topmostSubform[0].Page1[0].StdP1Header_sf[0].AttyInfo[0].Email_ft[0]': data.attorney.email,
+      'topmostSubform[0].Page1[0].StdP1Header_sf[0].AttyInfo[0].AttyFor_ft[0]': `Petitioner ${data.petitioner.name}`,
+    };
+    
+    // Court Information
+    const courtFields = {
+      'topmostSubform[0].Page1[0].StdP1Header_sf[0].CourtInfo[0].CrtCounty_ft[0]': data.court.county,
+      'topmostSubform[0].Page1[0].StdP1Header_sf[0].CourtInfo[0].Street_ft[0]': data.court.street,
+      'topmostSubform[0].Page1[0].StdP1Header_sf[0].CourtInfo[0].MailingAdd_ft[0]': data.court.street,
+      'topmostSubform[0].Page1[0].StdP1Header_sf[0].CourtInfo[0].CityZip_ft[0]': `${data.court.city}, CA ${data.court.zip}`,
+      'topmostSubform[0].Page1[0].StdP1Header_sf[0].CourtInfo[0].Branch_ft[0]': data.court.branch,
+    };
+    
+    // Case Information
+    const caseFields = {
+      'topmostSubform[0].Page1[0].StdP1Header_sf[0].CaseNumber[0].CaseNumber_ft[0]': data.case_number || 'To be assigned',
+      'topmostSubform[0].Page1[0].StdP1Header_sf[0].TitlePartyName[0].Party2_ft[0]': data.conservatee.name,
+    };
+    
+    // Hearing Information  
+    const hearingFields = {
+      'topmostSubform[0].Page1[0].StdP1Header_sf[0].HearingInfo_sf[0].HearingDateTime_ft[0]': data.hearing.datetime,
+      'topmostSubform[0].Page1[0].StdP1Header_sf[0].HearingInfo_sf[0].Dept_ft[0]': data.hearing.dept,
+    };
+    
+    // Petitioner Information (Section 1a)
+    const petitionerFields = {
+      'topmostSubform[0].Page1[0].FillText156[0]': data.petitioner.name,
+      'topmostSubform[0].Page1[0].FillText157[0]': data.petitioner.name,
+      'topmostSubform[0].Page1[0].FillText158[0]': data.petitioner.phone,
+      'topmostSubform[0].Page1[0].FillText164[0]': data.petitioner.address,
+    };
+    
+    // Proposed Conservator (Section 1b)
+    const conservatorFields = {
+      'topmostSubform[0].Page1[0].FillText160[0]': data.conservator.name || data.petitioner.name,
+      'topmostSubform[0].Page1[0].FillText162[0]': data.conservator.phone || data.petitioner.phone,
+      'topmostSubform[0].Page1[0].FillText163[0]': data.conservator.address || data.petitioner.address,
+    };
+    
+    // Conservatee Information (Page 2)
+    const conservateeFields = {
+      'topmostSubform[0].Page2[0].FillText171[0]': data.conservatee.name,
+      'topmostSubform[0].Page2[0].FillText172[0]': data.conservatee.phone,
+      'topmostSubform[0].Page2[0].FillText174[0]': data.conservatee.address,
+    };
+    
+    // Bond Information
+    const bondFields = {
+      'topmostSubform[0].Page1[0].FillText165[0]': data.bond.amount || '',
+      'topmostSubform[0].Page1[0].FillText166[0]': data.bond.blocked_account || '',
+      'topmostSubform[0].Page1[0].FillText167[0]': data.bond.institution || '',
+    };
+    
+    // Estate Values (Page 3)
+    const estateFields = {
+      'topmostSubform[0].Page3[0].FillText22[0]': data.estate.personal_property || '',
+      'topmostSubform[0].Page3[0].FillText26[0]': data.estate.annual_income || '',
+      'topmostSubform[0].Page3[0].FillText27[0]': data.estate.real_property || '',
+      'topmostSubform[0].Page3[0].FillText28[0]': data.estate.total || '',
+    };
+    
+    // Petitioner Relationship (Page 2, Section 3b)
+    const relationshipField = {
+      'topmostSubform[0].Page2[0].FillText2[0]': data.petitioner.relationship || '',
+    };
+    
+    // Signatures (Page 8)
+    const signatureFields = {
+      'topmostSubform[0].Page8[0].FillText61[0]': data.attorney.name,
+      'topmostSubform[0].Page8[0].FillText81[0]': formatDate(new Date()),
+      'topmostSubform[0].Page8[0].FillText61[1]': data.petitioner.name,
+      'topmostSubform[0].Page8[0].FillText83[0]': formatDate(new Date()),
+    };
+    
+    // Combine all text fields
+    const allTextFields = {
+      ...attorneyFields,
+      ...courtFields,
+      ...caseFields,
+      ...hearingFields,
+      ...petitionerFields,
+      ...conservatorFields,
+      ...conservateeFields,
+      ...bondFields,
+      ...estateFields,
+      ...relationshipField,
+      ...signatureFields
+    };
+    
+    // Fill all text fields
+    for (const [fieldName, value] of Object.entries(allTextFields)) {
+      try {
+        const field = form.getTextField(fieldName);
+        field.setText(value || '');
+        console.log(`Set ${fieldName} to "${value}"`);
+      } catch (e) {
+        console.log(`Could not set field ${fieldName}: ${e.message}`);
+      }
+    }
+    
+    // CHECKBOXES
+    const checkboxes = {
+      // Type of Conservatorship (header)
+      'topmostSubform[0].Page1[0].StdP1Header_sf[0].FormTitle[0].CheckBox22[0]': data.conservatorship_type === 'person',
+      'topmostSubform[0].Page1[0].StdP1Header_sf[0].FormTitle[0].CheckBx22[0]': data.conservatorship_type === 'estate',
+      'topmostSubform[0].Page1[0].StdP1Header_sf[0].FormTitle[0].ChckBx22[0]': data.is_limited || false,
+      'topmostSubform[0].Page1[0].StdP1Header_sf[0].FormTitle[0].successor_cb[0]': data.is_successor || false,
+      
+      // Bond requirements (Section 1c)
+      'topmostSubform[0].Page1[0].CheckBox13[0]': !data.bond.required,
+      'topmostSubform[0].Page1[0].CheckBox9[0]': data.bond.required,
+      'topmostSubform[0].Page1[0].CheckBox8[0]': data.bond.blocked_account ? true : false,
+      
+      // Powers requested
+      'topmostSubform[0].Page1[0].CheckBox7[0]': data.independent_powers || false,
+      'topmostSubform[0].Page1[0].CheckBox2[0]': data.medical_consent_powers || false,
+      
+      // Petitioner is conservator (same person)
+      'topmostSubform[0].Page1[0].CheckBx19[0]': data.petitioner_is_conservator !== false,
+      'topmostSubform[0].Page1[0].ChckBx19[0]': data.is_limited && data.petitioner_is_conservator,
+      
+      // Conservatee residence (Page 2)
+      'topmostSubform[0].Page2[0].CheckBox46[0]': data.conservatee.is_ca_resident !== false,
+      'topmostSubform[0].Page2[0].CheckBox45[0]': data.conservatee.is_county_resident !== false,
+      
+      // Petitioner relationship (Page 2)
+      'topmostSubform[0].Page2[0].CheckBox30[0]': data.petitioner.relationship_type === 'relative',
+      'topmostSubform[0].Page2[0].CheckBox32[0]': data.petitioner.relationship_type === 'spouse',
+      
+      // Conservatee condition (Page 5)
+      'topmostSubform[0].Page5[0].CheckBox119[0]': data.conservatee.unable_manage_finances !== false,
+      'topmostSubform[0].Page5[0].CheckBox79[0]': data.conservatee.unable_provide_needs !== false,
+      
+      // Required forms (Page 6 & 8)
+      'topmostSubform[0].Page6[0].CheckBox114[0]': true, // Confidential Supplemental Information
+      'topmostSubform[0].Page8[0].CheckBox151[0]': true, // Confidential screening form
+    };
+    
+    // Set all checkboxes
+    for (const [fieldName, shouldCheck] of Object.entries(checkboxes)) {
+      try {
+        const checkbox = form.getCheckBox(fieldName);
+        if (shouldCheck) {
+          checkbox.check();
+        } else {
+          checkbox.uncheck();
+        }
+        console.log(`${shouldCheck ? 'Checked' : 'Unchecked'} ${fieldName}`);
+      } catch (e) {
+        console.log(`Could not set checkbox ${fieldName}: ${e.message}`);
+      }
+    }
+    
+    return await pdfDoc.save();
+  } catch (error) {
+    console.error('Error filling GC-310:', error);
+    throw error;
+  }
+}
+async function fillGC312(data) {
+  try {
+    // Load the unlocked GC-312 PDF
+    const existingPdfBytes = await window.fs.readFile('GC-312-unlocked.pdf');
+    const pdfDoc = await PDFLib.PDFDocument.load(existingPdfBytes);
+    const form = pdfDoc.getForm();
+
+    // Attorney/Party Information
+    // STATE BAR NUMBER:
+    if (data.attorney?.barNumber) {
+      const barField = form.getTextField('GC-312[0].Page1[0].p1Caption[0].AttyPartyInfo[0].AttyBarNo[0]');
+      barField.setText(data.attorney.barNumber);
+    }
+    
+    // NAME:
+    if (data.attorney?.name) {
+      const nameField = form.getTextField('GC-312[0].Page1[0].p1Caption[0].AttyPartyInfo[0].ConservatorName[0]');
+      nameField.setText(data.attorney.name.toUpperCase());
+    }
+    
+    // FIRM NAME:
+    if (data.attorney?.firm) {
+      const firmField = form.getTextField('GC-312[0].Page1[0].p1Caption[0].AttyPartyInfo[0].AttyFirm[0]');
+      firmField.setText(data.attorney.firm);
+    }
+    
+    // STREET ADDRESS:
+    if (data.attorney?.address) {
+      const streetField = form.getTextField('GC-312[0].Page1[0].p1Caption[0].AttyPartyInfo[0].Street[0]');
+      streetField.setText(data.attorney.address);
+    }
+    
+    // CITY:
+    if (data.attorney?.city) {
+      const cityField = form.getTextField('GC-312[0].Page1[0].p1Caption[0].AttyPartyInfo[0].City[0]');
+      cityField.setText(data.attorney.city);
+    }
+    
+    // STATE:
+    if (data.attorney?.state) {
+      const stateField = form.getTextField('GC-312[0].Page1[0].p1Caption[0].AttyPartyInfo[0].State[0]');
+      stateField.setText(data.attorney.state);
+    }
+    
+    // ZIP CODE:
+    if (data.attorney?.zip) {
+      const zipField = form.getTextField('GC-312[0].Page1[0].p1Caption[0].AttyPartyInfo[0].Zip[0]');
+      zipField.setText(data.attorney.zip);
+    }
+    
+    // Phone number
+    if (data.attorney?.phone) {
+      const phoneField = form.getTextField('GC-312[0].Page1[0].p1Caption[0].AttyPartyInfo[0].Phone[0]');
+      phoneField.setText(data.attorney.phone);
+    }
+    
+    // Fax number
+    if (data.attorney?.fax) {
+      const faxField = form.getTextField('GC-312[0].Page1[0].p1Caption[0].AttyPartyInfo[0].Fax[0]');
+      faxField.setText(data.attorney.fax);
+    }
+    
+    // EMAIL ADDRESS:
+    if (data.attorney?.email) {
+      const emailField = form.getTextField('GC-312[0].Page1[0].p1Caption[0].AttyPartyInfo[0].Email[0]');
+      emailField.setText(data.attorney.email);
+    }
+    
+    // ATTORNEY FOR (name):
+    if (data.attorney?.representing) {
+      const attyForField = form.getTextField('GC-312[0].Page1[0].p1Caption[0].AttyPartyInfo[0].AttyFor[0]');
+      attyForField.setText(data.attorney.representing);
+    }
+
+    // Court Information
+    // SUPERIOR COURT OF CALIFORNIA, COUNTY OF
+    if (data.courtInfo?.county) {
+      const countyField = form.getTextField('GC-312[0].Page1[0].p1Caption[0].CourtInfo[0].CrtCounty[0]');
+      countyField.setText(data.courtInfo.county.toUpperCase());
+    }
+    
+    // STREET ADDRESS:
+    if (data.courtInfo?.address) {
+      const courtStreetField = form.getTextField('GC-312[0].Page1[0].p1Caption[0].CourtInfo[0].CrtStreet[0]');
+      courtStreetField.setText(data.courtInfo.address);
+    }
+    
+    // MAILING ADDRESS:
+    if (data.courtInfo?.mailingAddress) {
+      const mailingField = form.getTextField('GC-312[0].Page1[0].p1Caption[0].CourtInfo[0].CrtMailingAdd[0]');
+      mailingField.setText(data.courtInfo.mailingAddress);
+    }
+    
+    // CITY AND ZIP CODE:
+    if (data.courtInfo?.cityZip) {
+      const cityZipField = form.getTextField('GC-312[0].Page1[0].p1Caption[0].CourtInfo[0].CrtCityZip[0]');
+      cityZipField.setText(data.courtInfo.cityZip);
+    }
+    
+    // BRANCH NAME:
+    if (data.courtInfo?.branch) {
+      const branchField = form.getTextField('GC-312[0].Page1[0].p1Caption[0].CourtInfo[0].CrtBranch[0]');
+      branchField.setText(data.courtInfo.branch);
+    }
+
+    // Conservatee Information
+    // CONSERVATORSHIP OF (name): (repeated on all pages)
+    if (data.conservatee?.name) {
+      const conservateeFields = [
+        'GC-312[0].Page1[0].p1Caption[0].TitlePartyName[0].Conservatee_ft[0]',
+        'GC-312[0].Page2[0].p2Caption_sf[0].pxCaption[0].TitlePartyName[0].Conservatee_ft[0]',
+        'GC-312[0].Page3[0].p3Caption_sf[0].pxCaption[0].TitlePartyName[0].Conservatee_ft[0]',
+        'GC-312[0].Page4[0].p4Caption_sf[0].pxCaption[0].TitlePartyName[0].Conservatee_ft[0]'
+      ];
+      conservateeFields.forEach(fieldName => {
+        try {
+          const field = form.getTextField(fieldName);
+          field.setText(data.conservatee.name.toUpperCase());
+        } catch (e) {
+          console.log(`Could not set conservatee name field ${fieldName}: ${e.message}`);
+        }
+      });
+    }
+
+    // Conservatorship Type Checkboxes
+    if (data.conservatorshipType) {
+      // Limited
+      if (data.conservatorshipType.includes('limited')) {
+        const limitedBox = form.getCheckBox('GC-312[0].Page1[0].p1Caption[0].FormTitle[0].Ltd_cb[0]');
+        limitedBox.check();
+      }
+      // Person
+      if (data.conservatorshipType.includes('person')) {
+        const personBox = form.getCheckBox('GC-312[0].Page1[0].p1Caption[0].FormTitle[0].Person_cb[0]');
+        personBox.check();
+      }
+      // Estate
+      if (data.conservatorshipType.includes('estate')) {
+        const estateBox = form.getCheckBox('GC-312[0].Page1[0].p1Caption[0].FormTitle[0].Estate_cb[0]');
+        estateBox.check();
+      }
+    }
+
+    // CASE NUMBER: (repeated on all pages)
+    if (data.caseNumber) {
+      const caseNumberFields = [
+        'GC-312[0].Page1[0].p1Caption[0].CaseNumber[0].CaseNumber[0]',
+        'GC-312[0].Page2[0].p2Caption_sf[0].pxCaption[0].CaseNumber[0].CaseNumber[0]',
+        'GC-312[0].Page3[0].p3Caption_sf[0].pxCaption[0].CaseNumber[0].CaseNumber[0]',
+        'GC-312[0].Page4[0].p4Caption_sf[0].pxCaption[0].CaseNumber[0].CaseNumber[0]'
+      ];
+      caseNumberFields.forEach(fieldName => {
+        try {
+          const field = form.getTextField(fieldName);
+          field.setText(data.caseNumber);
+        } catch (e) {
+          console.log(`Could not set case number field ${fieldName}: ${e.message}`);
+        }
+      });
+    }
+
+    // Hearing Information
+    // HEARING DATE:
+    if (data.hearing?.date) {
+      const hearingDateField = form.getTextField('GC-312[0].Page1[0].p1Caption[0].HearingDate[0].HearingDt[0]');
+      hearingDateField.setText(data.hearing.date);
+    }
+    
+    // DEPT.:
+    if (data.hearing?.department) {
+      const deptField = form.getTextField('GC-312[0].Page1[0].p1Caption[0].Dept-Time[0].Dept[0]');
+      deptField.setText(data.hearing.department);
+    }
+    
+    // TIME:
+    if (data.hearing?.time) {
+      const timeField = form.getTextField('GC-312[0].Page1[0].p1Caption[0].Dept-Time[0].Time[0]');
+      timeField.setText(data.hearing.time);
+    }
+
+    // Item 1 - Proposed Conservatee Details
+    // Proposed conservatee (name):
+    if (data.conservatee?.name) {
+      const proposedNameField = form.getTextField('GC-312[0].Page1[0].Item1[0].Conservatee_ft[0]');
+      proposedNameField.setText(data.conservatee.name.toUpperCase());
+    }
+    
+    // Date of birth:
+    if (data.conservatee?.dateOfBirth) {
+      const dobField = form.getTextField('GC-312[0].Page1[0].Item1[0].DOB_ft[0]');
+      dobField.setText(data.conservatee.dateOfBirth);
+    }
+    
+    // Age:
+    if (data.conservatee?.age) {
+      const ageField = form.getTextField('GC-312[0].Page1[0].Item1[0].Age_ft[0]');
+      ageField.setText(data.conservatee.age.toString());
+    }
+    
+    // Social security number:
+    if (data.conservatee?.ssn) {
+      const ssnField = form.getTextField('GC-312[0].Page1[0].Item1[0].SSN_ft[0]');
+      ssnField.setText(data.conservatee.ssn);
+    }
+
+    // Item 2 - Role Selection
+    if (data.petitionerRole) {
+      // petitioner
+      if (data.petitionerRole === 'petitioner') {
+        const petitionerBox = form.getCheckBox('GC-312[0].Page1[0].Item2[0].Petitioner_cb[0]');
+        petitionerBox.check();
+      }
+      // proposed conservator
+      if (data.petitionerRole === 'proposed_conservator') {
+        const propConservatorBox = form.getCheckBox('GC-312[0].Page1[0].Item2[0].PropConservator_cb[0]');
+        propConservatorBox.check();
+      }
+    }
+
+    // Item 3 - Personal Needs Information
+    // ABILITY TO PROVIDE PROPERLY FOR PERSONAL NEEDS*
+    if (data.personalNeeds?.includeSection) {
+      const personalNeedsBox = form.getCheckBox('GC-312[0].Page1[0].Item3[0].Item3Main[0].PrsnlNeeds_cb[0]');
+      personalNeedsBox.check();
+    }
+    
+    // Physical health
+    if (data.personalNeeds?.physicalHealth) {
+      const physHealthField = form.getTextField('GC-312[0].Page1[0].Item3[0].Item3a[0].PhysHealth_ft[0]');
+      physHealthField.setText(data.personalNeeds.physicalHealth);
+    }
+    
+    // Continued in Attachment 3a.
+    if (data.personalNeeds?.physicalHealthAttachment) {
+      const contAtt3aBox = form.getCheckBox('GC-312[0].Page1[0].Item3[0].Item3a[0].ContiAtt3a_cb[0]');
+      contAtt3aBox.check();
+    }
+    
+    // Food
+    if (data.personalNeeds?.food) {
+      const foodField = form.getTextField('GC-312[0].Page1[0].Item3[0].Item3b[0].Food_ft[0]');
+      foodField.setText(data.personalNeeds.food);
+    }
+    
+    // Continued in Attachment 3b.
+    if (data.personalNeeds?.foodAttachment) {
+      const contAtt3bBox = form.getCheckBox('GC-312[0].Page1[0].Item3[0].Item3b[0].ContAtt3b3b[0]');
+      contAtt3bBox.check();
+    }
+    
+    // Clothing
+    if (data.personalNeeds?.clothing) {
+      const clothingField = form.getTextField('GC-312[0].Page1[0].Item3[0].Item3c[0].Clothing_ft[0]');
+      clothingField.setText(data.personalNeeds.clothing);
+    }
+    
+    // Continued in Attachment 3c.
+    if (data.personalNeeds?.clothingAttachment) {
+      const contAtt3cBox = form.getCheckBox('GC-312[0].Page1[0].Item3[0].Item3c[0].ContAtt3c_cb[0]');
+      contAtt3cBox.check();
+    }
+    
+    // Shelter
+    if (data.personalNeeds?.shelter) {
+      const shelterField = form.getTextField('GC-312[0].Page1[0].Item3[0].Item3d[0].Shelter_ft[0]');
+      shelterField.setText(data.personalNeeds.shelter);
+    }
+    
+    // Continued in Attachment 3d.
+    if (data.personalNeeds?.shelterAttachment) {
+      const contAtt3dBox = form.getCheckBox('GC-312[0].Page1[0].Item3[0].Item3d[0].ContAtt3d_cb[0]');
+      contAtt3dBox.check();
+    }
+
+    // Item 4 - Financial Resources (Page 2)
+    // ABILITY TO MANAGE OWN FINANCIAL RESOURCES*
+    if (data.financialResources?.includeSection) {
+      const finResourcesBox = form.getCheckBox('GC-312[0].Page2[0].Item4[0].FinResources_cb[0]');
+      finResourcesBox.check();
+    }
+    
+    // Financial resources
+    if (data.financialResources?.financialDetails) {
+      const finResField = form.getTextField('GC-312[0].Page2[0].Item4[0].FinRes_ft[0]');
+      finResField.setText(data.financialResources.financialDetails);
+    }
+    
+    // Continued in Attachment 4a.
+    if (data.financialResources?.financialAttachment) {
+      const contAtt4aBox = form.getCheckBox('GC-312[0].Page2[0].Item4[0].ContAtt4a_cb[0]');
+      contAtt4aBox.check();
+    }
+    
+    // Fraud or undue influence
+    if (data.financialResources?.fraudInfluence) {
+      const fraudField = form.getTextField('GC-312[0].Page2[0].Item4[0].FrdUndueInfl_ft[0]');
+      fraudField.setText(data.financialResources.fraudInfluence);
+    }
+    
+    // Continued in Attachment 4b.
+    if (data.financialResources?.fraudAttachment) {
+      const contAtt4bBox = form.getCheckBox('GC-312[0].Page2[0].Item4[0].ContAtt4b[0]');
+      contAtt4bBox.check();
+    }
+
+    // Item 5 - Residence Information
+    // The proposed conservatee's residence is a (nature of residence)
+    if (data.residence?.nature) {
+      const resNatureField = form.getTextField('GC-312[0].Page2[0].Item5[0].Item5a[0].ResNature_ft[0]');
+      resNatureField.setText(data.residence.nature);
+    }
+    
+    // The proposed conservatee's residence is located at (street address, city, state)
+    if (data.residence?.address) {
+      const resAddressField = form.getTextField('GC-312[0].Page2[0].Item5[0].Item5b[0].ResAddress_ft[0]');
+      resAddressField.setText(data.residence.address);
+    }
+    
+    // Current location radio buttons
+    if (data.residence?.currentLocation) {
+      if (data.residence.currentLocation === 'at_residence') {
+        // The proposed conservatee is currently located at the residence in item5b
+        const atResidenceBox = form.getCheckBox('GC-312[0].Page2[0].Item5[0].Item5c[0].residence5\\.c[0]');
+        atResidenceBox.check();
+      } else if (data.residence.currentLocation === 'other_place') {
+        // The proposed conservatee is currently located at another place
+        const otherPlaceBox = form.getCheckBox('GC-312[0].Page2[0].Item5[0].Item5c[0].residence5\\.c[1]');
+        otherPlaceBox.check();
+      }
+    }
+    
+    // if the proposed conservatee is located at another place, give the street address, city, and state of that place
+    if (data.residence?.otherAddress) {
+      const otherAddrField = form.getTextField('GC-312[0].Page2[0].Item5[0].Item5c[0].OtherAddr_ft[0]');
+      otherAddrField.setText(data.residence.otherAddress);
+    }
+    
+    // The proposed conservatee's current location is a (nature of current location)
+    if (data.residence?.currentNature) {
+      const currentNatureField = form.getTextField('GC-312[0].Page2[0].Item5[0].Item5d[0].CurrntLocNature_ft[0]');
+      currentNatureField.setText(data.residence.currentNature);
+    }
+
+    // Item 5e - Living Status
+    if (data.residence?.livingStatus) {
+      if (data.residence.livingStatus === 'living_in_residence') {
+        // living in the residence, and
+        const livingResBox = form.getCheckBox('GC-312[0].Page2[0].Item5[0].Item5e[0].Item5e1[0].LivingRes_cb[0]');
+        livingResBox.check();
+        
+        // Sub-options for living in residence
+        if (data.residence.livingSubStatus === 'continue_living') {
+          // is able to continue living there unless circumstances change.
+          const continueBox = form.getCheckBox('GC-312[0].Page2[0].Item5[0].Item5e[0].Item5e1[0].Item5e1a[0].livinginthe5\\.e[0]');
+          continueBox.check();
+        } else if (data.residence.livingSubStatus === 'need_to_move') {
+          // will need to be moved after a conservator is appointed
+          const moveBox = form.getCheckBox('GC-312[0].Page2[0].Item5[0].Item5e[0].Item5e1[0].Item5e1b[0].livinginthe5\\.e[0]');
+          moveBox.check();
+        } else if (data.residence.livingSubStatus === 'other_living') {
+          // other (specify and give reasons in item 5f)
+          const otherLivingBox = form.getCheckBox('GC-312[0].Page2[0].Item5[0].Item5e[0].Item5e1[0].Item5e1c[0].livinginthe5\\.e[0]');
+          otherLivingBox.check();
+        }
+      } else if (data.residence.livingStatus === 'not_living_in_residence') {
+        // not living in the residence, and
+        const notLivingBox = form.getCheckBox('GC-312[0].Page2[0].Item5[0].Item5e[0].Item5e2[0].NotLivingRes_cb[0]');
+        notLivingBox.check();
+        
+        // Sub-options for not living in residence
+        if (data.residence.notLivingSubStatus === 'return_home') {
+          // will be able to return home by
+          const returnBox = form.getCheckBox('GC-312[0].Page2[0].Item5[0].Item5e[0].Item5e2[0].Item5e2a[0].notlivinginthe5\\.e2[0]');
+          returnBox.check();
+          
+          // Date
+          if (data.residence.returnDate) {
+            const returnDateField = form.getTextField('GC-312[0].Page2[0].Item5[0].Item5e[0].Item5e2[0].Item5e2a[0].RtnDate_ft[0]');
+            returnDateField.setText(data.residence.returnDate);
+          }
+        } else if (data.residence.notLivingSubStatus === 'not_return') {
+          // will not return to live there
+          const notReturnBox = form.getCheckBox('GC-312[0].Page2[0].Item5[0].Item5e[0].Item5e2[0].Item5e2b[0].notlivinginthe5\\.e2[0]');
+          notReturnBox.check();
+        } else if (data.residence.notLivingSubStatus === 'other_not_living') {
+          // other (specify and give reasons in item 5f)
+          const otherNotLivingBox = form.getCheckBox('GC-312[0].Page2[0].Item5[0].Item5e[0].Item5e2[0].Item5e2c[0].notlivinginthe5\\.e2[0]');
+          otherNotLivingBox.check();
+        }
+      }
+    }
+    
+    // Specific reasons supporting the determination in item 5e
+    if (data.residence?.reasonsFor5e) {
+      const reasonsField = form.getTextField('GC-312[0].Page2[0].Item5[0].Item5f[0].ReasonsFor5e[0]');
+      reasonsField.setText(data.residence.reasonsFor5e);
+    }
+    
+    // Continued in Attachment 5f.
+    if (data.residence?.reasonsAttachment) {
+      const contAtt5eBox = form.getCheckBox('GC-312[0].Page2[0].Item5[0].Item5f[0].ContAtt5e_cb[0]');
+      contAtt5eBox.check();
+    }
+
+    // Item 6 - Alternatives Considered (Page 3)
+    // A supported decisionmaking agreement
+    if (data.alternatives?.supportedDecisionmaking) {
+      const sdmField = form.getTextField('GC-312[0].Page3[0].Item6[0].Item6a[0].SDM_ft[0]');
+      sdmField.setText(data.alternatives.supportedDecisionmaking);
+    }
+    
+    // Continued in Attachment 6a.
+    if (data.alternatives?.sdmAttachment) {
+      const contAtt6aBox = form.getCheckBox('GC-312[0].Page3[0].Item6[0].Item6a[0].ContAtt6a_cb[0]');
+      contAtt6aBox.check();
+    }
+    
+    // Designation of a health care surrogate
+    if (data.alternatives?.healthCareSurrogate) {
+      const hcSurrField = form.getTextField('GC-312[0].Page3[0].Item6[0].Item6b[0].DesHCSurr_ft[0]');
+      hcSurrField.setText(data.alternatives.healthCareSurrogate);
+    }
+    
+    // Continued in Attachment 6b.
+    if (data.alternatives?.hcSurrAttachment) {
+      const contAtt6bBox = form.getCheckBox('GC-312[0].Page3[0].Item6[0].Item6b[0].ContAtt6b_cb[0]');
+      contAtt6bBox.check();
+    }
+    
+    // An advance health care directive
+    if (data.alternatives?.advanceDirective) {
+      const ahcdField = form.getTextField('GC-312[0].Page3[0].Item6[0].Item6c[0].AHCD_ft[0]');
+      ahcdField.setText(data.alternatives.advanceDirective);
+    }
+    
+    // Continued in Attachment 6c.
+    if (data.alternatives?.ahcdAttachment) {
+      const contAtt6cBox = form.getCheckBox('GC-312[0].Page3[0].Item6[0].Item6c[0].ContAtt6c[0]');
+      contAtt6cBox.check();
+    }
+    
+    // A power of attorney
+    if (data.alternatives?.powerOfAttorney) {
+      const poaField = form.getTextField('GC-312[0].Page3[0].Item6[0].Item6d[0].POA_ft[0]');
+      poaField.setText(data.alternatives.powerOfAttorney);
+    }
+    
+    // Continued in Attachment 6d.
+    if (data.alternatives?.poaAttachment) {
+      const contAtt6dBox = form.getCheckBox('GC-312[0].Page3[0].Item6[0].Item6d[0].ContAtt6d[0]');
+      contAtt6dBox.check();
+    }
+    
+    // A trust
+    if (data.alternatives?.trust) {
+      const trustField = form.getTextField('GC-312[0].Page3[0].Item6[0].Item6e[0].Trust_ft[0]');
+      trustField.setText(data.alternatives.trust);
+    }
+    
+    // Continued in Attachment 6e.
+    if (data.alternatives?.trustAttachment) {
+      const contAtt6eBox = form.getCheckBox('GC-312[0].Page3[0].Item6[0].Item6e[0].ContAtt6e_cb[0]');
+      contAtt6eBox.check();
+    }
+    
+    // Other alternatives considered or attempted
+    if (data.alternatives?.otherAlternatives) {
+      const otherAltsField = form.getTextField('GC-312[0].Page3[0].Item6[0].Item6f[0].OtherAlts_ft[0]');
+      otherAltsField.setText(data.alternatives.otherAlternatives);
+    }
+    
+    // Continued in Attachment 6f.
+    if (data.alternatives?.otherAttachment) {
+      const contAtt6fBox = form.getCheckBox('GC-312[0].Page3[0].Item6[0].Item6f[0].ContAtt6f[0]');
+      contAtt6fBox.check();
+    }
+
+    // Item 7 - Services Received (Page 4)
+    // Health services checkbox
+    if (data.services?.healthServicesInclude) {
+      const healthServsBox = form.getCheckBox('GC-312[0].Page4[0].Item7[0].Item7a[0].HealthServs_cb[0]');
+      healthServsBox.check();
+    }
+    
+    // Health services description
+    if (data.services?.healthServices) {
+      const healthServsField = form.getTextField('GC-312[0].Page4[0].Item7[0].Item7a[0].HealthServs_ft[0]');
+      healthServsField.setText(data.services.healthServices);
+    }
+    
+    // Continued in Attachment 7a.
+    if (data.services?.healthServicesAttachment) {
+      const contAtt7aBox = form.getCheckBox('GC-312[0].Page4[0].Item7[0].Item7a[0].ContAtt7a_cb[0]');
+      contAtt7aBox.check();
+    }
+    
+    // Social services checkbox
+    if (data.services?.socialServicesInclude) {
+      const socialServsBox = form.getCheckBox('GC-312[0].Page4[0].Item7[0].Item7b[0].SocialServs_cb[0]');
+      socialServsBox.check();
+    }
+    
+    // Social services description
+    if (data.services?.socialServices) {
+      const socialServsField = form.getTextField('GC-312[0].Page4[0].Item7[0].Item7b[0].SocialServs_ft[0]');
+      socialServsField.setText(data.services.socialServices);
+    }
+    
+    // Continued in Attachment 7b.
+    if (data.services?.socialServicesAttachment) {
+      const contAtt7bBox = form.getCheckBox('GC-312[0].Page4[0].Item7[0].Item7b[0].ContAtt7b_cb[0]');
+      contAtt7bBox.check();
+    }
+    
+    // I do not know checkboxes
+    if (data.services?.dontKnow) {
+      const dontKnowBox = form.getCheckBox('GC-312[0].Page4[0].Item7[0].Item7c[0].DontKnow_cb[0]');
+      dontKnowBox.check();
+      
+      // Health services unknown
+      if (data.services.dontKnowHealth) {
+        const hsBox = form.getCheckBox('GC-312[0].Page4[0].Item7[0].Item7c[0].HS_cb[0]');
+        hsBox.check();
+      }
+      
+      // Social services unknown
+      if (data.services.dontKnowSocial) {
+        const ssBox = form.getCheckBox('GC-312[0].Page4[0].Item7[0].Item7c[0].SS_cb[0]');
+        ssBox.check();
+      }
+    }
+
+    // Item 8 - Conservatee Knowledge/Agreement
+    if (data.conservateeKnowledge?.knows !== undefined) {
+      if (data.conservateeKnowledge.knows === 'yes') {
+        // The proposed conservatee knows about the proposed conservatorship
+        const knowsBox = form.getCheckBox('GC-312[0].Page4[0].Item8[0].Item8a[0].Knows_8\\.a[0]');
+        knowsBox.check();
+      } else if (data.conservateeKnowledge.knows === 'no') {
+        // The proposed conservatee does not know about the proposed conservatorship
+        const doesntKnowBox = form.getCheckBox('GC-312[0].Page4[0].Item8[0].Item8a[0].Knows_8\\.a[1]');
+        doesntKnowBox.check();
+      } else if (data.conservateeKnowledge.knows === 'unknown') {
+        // I don't know.
+        const unknownBox = form.getCheckBox('GC-312[0].Page4[0].Item8[0].Item8a[0].Knows_8\\.a[2]');
+        unknownBox.check();
+      }
+    }
+    
+    if (data.conservateeKnowledge?.agrees !== undefined) {
+      if (data.conservateeKnowledge.agrees === 'yes') {
+        // The proposed conservatee agrees with the proposed conservatorship
+        const agreesBox = form.getCheckBox('GC-312[0].Page4[0].Item8[0].Item8b[0].Agrees_8\\.b[0]');
+        agreesBox.check();
+      } else if (data.conservateeKnowledge.agrees === 'no') {
+        // The proposed conservatee does not agree with the proposed conservatorship
+        const disagreesBox = form.getCheckBox('GC-312[0].Page4[0].Item8[0].Item8b[0].Agrees_8\\.b[1]');
+        disagreesBox.check();
+      } else if (data.conservateeKnowledge.agrees === 'unknown') {
+        // I don't know.
+        const unknownAgreeBox = form.getCheckBox('GC-312[0].Page4[0].Item8[0].Item8b[0].Agrees_8\\.b[2]');
+        unknownAgreeBox.check();
+      } else if (data.conservateeKnowledge.agrees === 'not_applicable') {
+        // Item 8b does not apply because the proposed conservatee does not know
+        const notApplicableBox = form.getCheckBox('GC-312[0].Page4[0].Item8[0].Item8b[0].Agrees_8\\.b[3]');
+        notApplicableBox.check();
+      }
+    }
+
+    // Item 9 - Source of Information
+    // Personal knowledge checkboxes
+    if (data.sourceOfInfo?.item3PersonalKnowledge) {
+      const persKnow3Box = form.getCheckBox('GC-312[0].Page4[0].Item9[0].Item9a[0].PersKnow9a_cb[0]');
+      persKnow3Box.check();
+    }
+    if (data.sourceOfInfo?.item3Affidavit) {
+      const affidavit3Box = form.getCheckBox('GC-312[0].Page4[0].Item9[0].Item9a[0].Affidavit9a_cb[0]');
+      affidavit3Box.check();
+    }
+    if (data.sourceOfInfo?.item4PersonalKnowledge) {
+      const persKnow4Box = form.getCheckBox('GC-312[0].Page4[0].Item9[0].Item9b[0].PersKnow9b_cb[0]');
+      persKnow4Box.check();
+    }
+    if (data.sourceOfInfo?.item4Affidavit) {
+      const affidavit4Box = form.getCheckBox('GC-312[0].Page4[0].Item9[0].Item9b[0].Affidavit9b_cb[0]');
+      affidavit4Box.check();
+    }
+    if (data.sourceOfInfo?.item5PersonalKnowledge) {
+      const persKnow5Box = form.getCheckBox('GC-312[0].Page4[0].Item9[0].Item9c[0].PersKnow9c_cb[0]');
+      persKnow5Box.check();
+    }
+    if (data.sourceOfInfo?.item5Affidavit) {
+      const affidavit5Box = form.getCheckBox('GC-312[0].Page4[0].Item9[0].Item9c[0].Affidavit9c_cb[0]');
+      affidavit5Box.check();
+    }
+    if (data.sourceOfInfo?.item6PersonalKnowledge) {
+      const persKnow6Box = form.getCheckBox('GC-312[0].Page4[0].Item9[0].Item9d[0].PersKnow9d_cb[0]');
+      persKnow6Box.check();
+    }
+    if (data.sourceOfInfo?.item6Affidavit) {
+      const affidavit6Box = form.getCheckBox('GC-312[0].Page4[0].Item9[0].Item9d[0].Affidavit9d_cb[0]');
+      affidavit6Box.check();
+    }
+    if (data.sourceOfInfo?.item7PersonalKnowledge) {
+      const persKnow7Box = form.getCheckBox('GC-312[0].Page4[0].Item9[0].Item9e[0].PersKnow9e_cb[0]');
+      persKnow7Box.check();
+    }
+    if (data.sourceOfInfo?.item7Affidavit) {
+      const affidavit7Box = form.getCheckBox('GC-312[0].Page4[0].Item9[0].Item9e[0].Affidavit9e_cb[0]');
+      affidavit7Box.check();
+    }
+    if (data.sourceOfInfo?.item8PersonalKnowledge) {
+      const persKnow8Box = form.getCheckBox('GC-312[0].Page4[0].Item9[0].Item9f[0].PersKnow9f_cb[0]');
+      persKnow8Box.check();
+    }
+    if (data.sourceOfInfo?.item8Affidavit) {
+      const affidavit8Box = form.getCheckBox('GC-312[0].Page4[0].Item9[0].Item9f[0].Affidavit9f_cb[0]');
+      affidavit8Box.check();
+    }
+
+    // Item 10 - Non-Applicable Items
+    if (data.nonApplicable?.item3DoesNotApply) {
+      const notApply3Box = form.getCheckBox('GC-312[0].Page4[0].Item10[0].NotApply3_cb[0]');
+      notApply3Box.check();
+    }
+    if (data.nonApplicable?.item4DoesNotApply) {
+      const notApply4Box = form.getCheckBox('GC-312[0].Page4[0].Item10[0].NotApply4_cb[0]');
+      notApply4Box.check();
+    }
+    
+    // (specify reasons each item is not applicable):
+    if (data.nonApplicable?.explanation) {
+      const explainField = form.getTextField('GC-312[0].Page4[0].Item10[0].NotAppExplain_ft[0]');
+      explainField.setText(data.nonApplicable.explanation);
+    }
+    
+    // Continued on Attachment 10.
+    if (data.nonApplicable?.attachment) {
+      const contAtt10Box = form.getCheckBox('GC-312[0].Page4[0].Item10[0].ContAtt10_cb[0]');
+      contAtt10Box.check();
+    }
+
+    // Item 11 - Attachments
+    // Number of pages attached:
+    if (data.attachments?.numberOfPages) {
+      const numPagesField = form.getTextField('GC-312[0].Page4[0].Item11[0].NumPages[0]');
+      numPagesField.setText(data.attachments.numberOfPages.toString());
+    }
+
+    // Declaration Section
+    // Date:
+    if (data.declaration?.date) {
+      const sigDateField = form.getTextField('GC-312[0].Page4[0].PoPDec[0].SigDate[0]');
+      sigDateField.setText(data.declaration.date);
+    }
+    
+    // (TYPE OR PRINT NAME)
+    if (data.declaration?.signerName) {
+      const typeNameField = form.getTextField('GC-312[0].Page4[0].PoPDec[0].TypePrintName[0]');
+      typeNameField.setText(data.declaration.signerName.toUpperCase());
+    }
+
+    console.log('GC-312 form filled successfully with', Object.keys(data).length, 'data sections');
+    return await pdfDoc.save();
+    
+  } catch (error) {
+    console.error('Error filling GC-312:', error);
+    throw error;
+  }
+}
+
+// Example usage data structure:
+const exampleGC312Data = {
+  attorney: {
+    barNumber: "123456",
+    name: "JANE ATTORNEY SMITH",
+    firm: "Smith & Associates",
+    address: "123 Legal Street",
+    city: "Los Angeles",
+    state: "CA",
+    zip: "90028",
+    phone: "(213) 555-0123",
+    fax: "(213) 555-0124",
+    email: "jsmith@lawfirm.com",
+    representing: "Petitioner"
+  },
+  courtInfo: {
+    county: "LOS ANGELES",
+    address: "111 North Hill Street",
+    mailingAddress: "Same as above",
+    cityZip: "Los Angeles, CA 90012",
+    branch: "STANLEY MOSK COURTHOUSE"
+  },
+  conservatee: {
+    name: "JOHN PROPOSED DOE",
+    dateOfBirth: "01/15/1950",
+    age: "75",
+    ssn: "XXX-XX-1234"
+  },
+  conservatorshipType: ["limited", "person"], // Can include "limited", "person", "estate"
+  caseNumber: "24STPB00123",
+  hearing: {
+    date: "10/15/2025",
+    department: "11",
+    time: "8:30 a.m."
+  },
+  petitionerRole: "petitioner", // or "proposed_conservator"
+  personalNeeds: {
+    includeSection: true,
+    physicalHealth: "Unable to maintain basic hygiene, frequently forgets medications, has difficulty walking safely.",
+    physicalHealthAttachment: false,
+    food: "Cannot prepare meals, often forgets to eat, has lost significant weight.",
+    foodAttachment: false,
+    clothing: "Wears same clothes for days, unable to do laundry, inappropriate dress for weather.",
+    clothingAttachment: false,
+    shelter: "Unable to pay bills, house in disrepair, safety hazards present.",
+    shelterAttachment: false
+  },
+  financialResources: {
+    includeSection: true,
+    financialDetails: "Gave $50,000 to phone scammer, cannot balance checkbook, pays same bill multiple times.",
+    financialAttachment: false,
+    fraudInfluence: "Susceptible to telemarketing scams, easily convinced by door-to-door salespeople.",
+    fraudAttachment: false
+  },
+  residence: {
+    nature: "single family home",
+    address: "456 Main Street, Los Angeles, CA 90028",
+    currentLocation: "other_place",
+    otherAddress: "789 Care Facility Lane, Los Angeles, CA 90028",
+    currentNature: "assisted living facility",
+    livingStatus: "not_living_in_residence",
+    notLivingSubStatus: "not_return",
+    reasonsFor5e: "Home is unsafe due to hoarding and lack of maintenance. Conservatee requires 24-hour supervision.",
+    reasonsAttachment: false
+  },
+  alternatives: {
+    supportedDecisionmaking: "Attempted but conservatee unable to understand or participate meaningfully.",
+    sdmAttachment: false,
+    healthCareSurrogate: "No advance directive exists.",
+    hcSurrAttachment: false,
+    advanceDirective: "None executed.",
+    ahcdAttachment: false,
+    powerOfAttorney: "Previous POA revoked due to abuse by agent.",
+    poaAttachment: false,
+    trust: "No trust exists.",
+    trustAttachment: false,
+    otherAlternatives: "Family attempted informal care management but conservatee refused assistance.",
+    otherAttachment: false
+  },
+  services: {
+    healthServicesInclude: true,
+    healthServices: "Monthly doctor visits, weekly home health aide, daily medication management.",
+    healthServicesAttachment: false,
+    socialServicesInclude: true,
+    socialServices: "Meals on Wheels, housekeeping service twice weekly, transportation assistance.",
+    socialServicesAttachment: false,
+    dontKnow: false
+  },
+  conservateeKnowledge: {
+    knows: "no", // "yes", "no", "unknown"
+    agrees: "not_applicable" // "yes", "no", "unknown", "not_applicable"
+  },
+  sourceOfInfo: {
+    item3PersonalKnowledge: true,
+    item3Affidavit: false,
+    item4PersonalKnowledge: true,
+    item4Affidavit: false,
+    item5PersonalKnowledge: false,
+    item5Affidavit: true,
+    item6PersonalKnowledge: true,
+    item6Affidavit: false,
+    item7PersonalKnowledge: false,
+    item7Affidavit: true,
+    item8PersonalKnowledge: true,
+    item8Affidavit: false
+  },
+  nonApplicable: {
+    item3DoesNotApply: false,
+    item4DoesNotApply: false,
+    explanation: "",
+    attachment: false
+  },
+  attachments: {
+    numberOfPages: "3"
+  },
+  declaration: {
+    date: "09/04/2025",
+    signerName: "JANE ATTORNEY SMITH"
+  }
+};
+
+/* 
+GC-312 FIELD MAPPING SUMMARY (118 total fields):
+
+This comprehensive form contains confidential supplemental information about the proposed conservatee that supplements the main petition. It includes detailed assessments of the person's ability to care for themselves and manage their affairs, alternatives considered, services received, and the conservatee's knowledge of the proceedings.
+
+The form spans 4 pages and covers:
+- Attorney and court information
+- Detailed personal care abilities assessment  
+- Financial management capabilities
+- Residence and living situation
+- Alternatives to conservatorship considered
+- Health and social services received
+- Conservatee's knowledge and agreement
+- Source documentation for all assertions
+- Attachments and declarations
+
+All field names follow the pattern GC-312[0].PageX[0]... and include comprehensive FieldNameAlt descriptions for each field's purpose.
+*/
+// GC-320 Form Filler Function (Citation for Conservatorship)
+async function fillGC320(data, pdfBytes) {
+  try {
+    const pdfDoc = await PDFDocument.load(pdfBytes);
+    const form = pdfDoc.getForm();
+    
+    console.log(`GC-320 has ${form.getFields().length} fields available`);
+    
+    // Attorney Information
+    const attorneyFields = {
+      'topmostSubform[0].Page1[0].CaptionP1_sf[0].AttyInfo[0].AttyName_ft[0]': data.attorney.name,
+      'topmostSubform[0].Page1[0].CaptionP1_sf[0].AttyInfo[0].AttyBarNo_dc[0]': data.attorney.bar_number,
+      'topmostSubform[0].Page1[0].CaptionP1_sf[0].AttyInfo[0].AttyFirm_ft[0]': data.attorney.firm_name,
+      'topmostSubform[0].Page1[0].CaptionP1_sf[0].AttyInfo[0].AttyStreet_ft[0]': data.attorney.street,
+      'topmostSubform[0].Page1[0].CaptionP1_sf[0].AttyInfo[0].AttyCity_ft[0]': data.attorney.city,
+      'topmostSubform[0].Page1[0].CaptionP1_sf[0].AttyInfo[0].AttyState_ft[0]': data.attorney.state,
+      'topmostSubform[0].Page1[0].CaptionP1_sf[0].AttyInfo[0].AttyZip_ft[0]': data.attorney.zip,
+      'topmostSubform[0].Page1[0].CaptionP1_sf[0].AttyInfo[0].Phone_ft[0]': data.attorney.phone,
+      'topmostSubform[0].Page1[0].CaptionP1_sf[0].AttyInfo[0].Fax_ft[0]': data.attorney.fax,
+      'topmostSubform[0].Page1[0].CaptionP1_sf[0].AttyInfo[0].Email_ft[0]': data.attorney.email,
+      'topmostSubform[0].Page1[0].CaptionP1_sf[0].AttyInfo[0].AttyFor_ft[0]': `Petitioner ${data.petitioner.name}`,
+    };
+    
+    // Court Information
+    const courtFields = {
+      'topmostSubform[0].Page1[0].CaptionP1_sf[0].CourtInfo[0].CrtCounty_ft[0]': data.court.county,
+      'topmostSubform[0].Page1[0].CaptionP1_sf[0].CourtInfo[0].Street_ft[0]': data.court.street,
+      'topmostSubform[0].Page1[0].CaptionP1_sf[0].CourtInfo[0].MailingAdd_ft[0]': data.court.street,
+      'topmostSubform[0].Page1[0].CaptionP1_sf[0].CourtInfo[0].CityZip_ft[0]': `${data.court.city}, CA ${data.court.zip}`,
+      'topmostSubform[0].Page1[0].CaptionP1_sf[0].CourtInfo[0].Branch_ft[0]': data.court.branch,
+    };
+    
+    // Case Information
+    const caseFields = {
+      'topmostSubform[0].Page1[0].CaptionP1_sf[0].CaseNumber[0].CaseNumber_ft[0]': data.case_number || 'To be assigned',
+      'topmostSubform[0].Page1[0].CaptionP1_sf[0].TitlePartyName[0].Party1_ft[0]': data.conservatee.name,
+      'topmostSubform[0].Page2[0].PxCaption_sf[0].CaseNumber[0].CaseNumber_ft[0]': data.case_number || 'To be assigned',
+      'topmostSubform[0].Page2[0].PxCaption_sf[0].TitlePartyName[0].Party1_ft[0]': data.conservatee.name,
+      'topmostSubform[0].Page3[0].PxCaption_sf[0].CaseNumber[0].CaseNumber_ft[0]': data.case_number || 'To be assigned',
+      'topmostSubform[0].Page3[0].PxCaption_sf[0].TitlePartyName[0].Party1_ft[0]': data.conservatee.name,
+    };
+    
+    // Citation Information (Page 1)
+    const citationFields = {
+      'topmostSubform[0].Page1[0].FillText59[0]': data.conservatee.name, // To (name)
+      'topmostSubform[0].Page1[0].FillText64[0]': data.conservatee.address || '', // Address if different
+      'topmostSubform[0].Page1[0].FillText65[0]': data.petitioner.name, // Petitioner name
+    };
+    
+    // Hearing Information
+    const hearingFields = {
+      'topmostSubform[0].Page1[0].#area[0].FillText61[0]': data.hearing.date,
+      'topmostSubform[0].Page1[0].#area[0].FillText60[0]': data.hearing.time,
+      'topmostSubform[0].Page1[0].#area[0].FillText59[1]': data.hearing.dept,
+      'topmostSubform[0].Page1[0].#area[0].FillText58[0]': data.hearing.room || '',
+    };
+    
+    // Clerk Signature (Page 2)
+    const clerkFields = {
+      'topmostSubform[0].Page2[0].FillText66[0]': formatDate(new Date()),
+      'topmostSubform[0].Page2[0].T56[0]': 'Deputy',
+    };
+    
+    // Service Information (Page 3)
+    const serviceFields = {
+      'topmostSubform[0].Page3[0].FillText4[0]': data.conservatee.name, // Person cited
+      'topmostSubform[0].Page3[0].FillText22[0]': data.conservatee.address, // Address
+      'topmostSubform[0].Page3[0].FillText11[0]': data.server?.info || '', // Person serving info
+      'topmostSubform[0].Page3[0].FillText190[0]': data.server?.fee || '', // Fee for service
+      'topmostSubform[0].Page3[0].FillText19[0]': '', // Date of service (filled when served)
+    };
+    
+    // Combine all text fields
+    const allTextFields = {
+      ...attorneyFields,
+      ...courtFields,
+      ...caseFields,
+      ...citationFields,
+      ...hearingFields,
+      ...clerkFields,
+      ...serviceFields
+    };
+    
+    // Fill all text fields
+    for (const [fieldName, value] of Object.entries(allTextFields)) {
+      try {
+        const field = form.getTextField(fieldName);
+        field.setText(value || '');
+        console.log(`Set ${fieldName} to "${value}"`);
+      } catch (e) {
+        console.log(`Could not set field ${fieldName}: ${e.message}`);
+      }
+    }
+    
+    // CHECKBOXES
+    const checkboxes = {
+      // Type of Conservatorship
+      'topmostSubform[0].Page1[0].CaptionP1_sf[0].TitlePartyName[0].#area[0].TitlePerson_cb[0]': data.conservatorship_type === 'person',
+      'topmostSubform[0].Page1[0].CaptionP1_sf[0].TitlePartyName[0].#area[0].TitleEstate_cb[0]': data.conservatorship_type === 'estate',
+      'topmostSubform[0].Page1[0].CaptionP1_sf[0].FormTitle[0].#area[0].ChckBx22[0]': data.is_limited || false,
+      
+      // Repeated on all pages
+      'topmostSubform[0].Page2[0].PxCaption_sf[0].TitlePartyName[0].#area[0].TitlePerson_cb[0]': data.conservatorship_type === 'person',
+      'topmostSubform[0].Page2[0].PxCaption_sf[0].TitlePartyName[0].#area[0].TitleEstate_cb[0]': data.conservatorship_type === 'estate',
+      'topmostSubform[0].Page3[0].PxCaption_sf[0].TitlePartyName[0].#area[0].TitlePerson_cb[0]': data.conservatorship_type === 'person',
+      'topmostSubform[0].Page3[0].PxCaption_sf[0].TitlePartyName[0].#area[0].TitleEstate_cb[0]': data.conservatorship_type === 'estate',
+      
+      // Reasons for conservatorship
+      'topmostSubform[0].Page1[0].CheckBox8[0]': data.conservatee.unable_provide_needs !== false,
+      'topmostSubform[0].Page1[0].ChckBox8[0]': data.conservatee.unable_manage_finances !== false,
+      
+      // Type of conservator
+      'topmostSubform[0].Page1[0].CheckBox5[0]': !data.is_limited,
+      'topmostSubform[0].Page1[0].ChckBox5[0]': data.is_limited,
+      
+      // Conservatorship of
+      'topmostSubform[0].Page1[0].CheckBx3[0]': data.conservatorship_type === 'person',
+      'topmostSubform[0].Page1[0].ChckBox3[0]': data.conservatorship_type === 'estate',
+      'topmostSubform[0].Page1[0].CheckBox2[0]': data.conservatorship_type === 'person',
+      'topmostSubform[0].Page1[0].CheckBx2[0]': data.conservatorship_type === 'estate',
+      
+      // Address same as above
+      'topmostSubform[0].Page1[0].CheckBox9[0]': true, // Usually same address
+      'topmostSubform[0].Page1[0].CheckBox10[0]': false, // Other address
+      
+      // Hearing location
+      'topmostSubform[0].Page1[0].#area[0].CheckBox27[0]': true, // Dept.
+      'topmostSubform[0].Page1[0].#area[0].CheckBox28[0]': data.hearing.room ? true : false, // Room
+      
+      // Service section (Page 3) - left blank for now
+      'topmostSubform[0].Page3[0].CheckBox29[0]': true, // Person in item 2a
+      'topmostSubform[0].Page3[0].CheckBox27[0]': false, // Personal delivery (to be filled later)
+      'topmostSubform[0].Page3[0].CheckBox26[0]': false, // By mail (to be filled later)
+    };
+    
+    // Set all checkboxes
+    for (const [fieldName, shouldCheck] of Object.entries(checkboxes)) {
+      try {
+        const checkbox = form.getCheckBox(fieldName);
+        if (shouldCheck) {
+          checkbox.check();
+        } else {
+          checkbox.uncheck();
+        }
+        console.log(`${shouldCheck ? 'Checked' : 'Unchecked'} ${fieldName}`);
+      } catch (e) {
+        console.log(`Could not set checkbox ${fieldName}: ${e.message}`);
+      }
+    }
+    
+    return await pdfDoc.save();
+  } catch (error) {
+    console.error('Error filling GC-320:', error);
+    throw error;
+  }
+}
+// GC-340 Form Filler Function (Order Appointing Conservator)
+async function fillGC340(data, pdfBytes) {
+  try {
+    const pdfDoc = await PDFDocument.load(pdfBytes);
+    const form = pdfDoc.getForm();
+    
+    console.log(`GC-340 has ${form.getFields().length} fields available`);
+    
+    // Attorney Information
+    const attorneyFields = {
+      'topmostSubform[0].Page1[0].StdP1Header_sf[0].AttyInfo[0].AttyName_ft[0]': data.attorney.name,
+      'topmostSubform[0].Page1[0].StdP1Header_sf[0].AttyInfo[0].AttyBarNo_dc[0]': data.attorney.bar_number,
+      'topmostSubform[0].Page1[0].StdP1Header_sf[0].AttyInfo[0].AttyFirm_ft[0]': data.attorney.firm_name,
+      'topmostSubform[0].Page1[0].StdP1Header_sf[0].AttyInfo[0].AttyStreet_ft[0]': data.attorney.street,
+      'topmostSubform[0].Page1[0].StdP1Header_sf[0].AttyInfo[0].AttyCity_ft[0]': data.attorney.city,
+      'topmostSubform[0].Page1[0].StdP1Header_sf[0].AttyInfo[0].AttyState_ft[0]': data.attorney.state,
+      'topmostSubform[0].Page1[0].StdP1Header_sf[0].AttyInfo[0].AttyZip_ft[0]': data.attorney.zip,
+      'topmostSubform[0].Page1[0].StdP1Header_sf[0].AttyInfo[0].Phone_ft[0]': data.attorney.phone,
+      'topmostSubform[0].Page1[0].StdP1Header_sf[0].AttyInfo[0].Fax_ft[0]': data.attorney.fax,
+      'topmostSubform[0].Page1[0].StdP1Header_sf[0].AttyInfo[0].Email_ft[0]': data.attorney.email,
+      'topmostSubform[0].Page1[0].StdP1Header_sf[0].AttyInfo[0].AttyFor_ft[0]': `Petitioner ${data.petitioner.name}`,
+    };
+    
+    // Court Information
+    const courtFields = {
+      'topmostSubform[0].Page1[0].StdP1Header_sf[0].CourtInfo[0].CrtCounty_ft[0]': data.court.county,
+      'topmostSubform[0].Page1[0].StdP1Header_sf[0].CourtInfo[0].Street_ft[0]': data.court.street,
+      'topmostSubform[0].Page1[0].StdP1Header_sf[0].CourtInfo[0].MailingAdd_ft[0]': data.court.street,
+      'topmostSubform[0].Page1[0].StdP1Header_sf[0].CourtInfo[0].CityZip_ft[0]': `${data.court.city}, CA ${data.court.zip}`,
+      'topmostSubform[0].Page1[0].StdP1Header_sf[0].CourtInfo[0].Branch_ft[0]': data.court.branch,
+    };
+    
+    // Case Information (appears on all pages)
+    const caseFields = {
+      'topmostSubform[0].Page1[0].StdP1Header_sf[0].CaseNumber[0].CaseNumber_ft[0]': data.case_number || '',
+      'topmostSubform[0].Page1[0].StdP1Header_sf[0].TitlePartyName[0].Party2_ft[0]': data.conservatee.name,
+      'topmostSubform[0].Page2[0].CaptionPx_sf[0].CaseNumber[0].CaseNumber_ft[0]': data.case_number || '',
+      'topmostSubform[0].Page2[0].CaptionPx_sf[0].TitlePartyName[0].Party2_ft[0]': data.conservatee.name,
+      'topmostSubform[0].Page3[0].CaptionPx_sf[0].CaseNumber[0].CaseNumber_ft[0]': data.case_number || '',
+      'topmostSubform[0].Page3[0].CaptionPx_sf[0].TitlePartyName[0].Party2_ft[0]': data.conservatee.name,
+    };
+    
+    // Hearing Information (Page 1)
+    const hearingFields = {
+      'topmostSubform[0].Page1[0].FillText16[0]': data.hearing.judge || '',
+      'topmostSubform[0].Page1[0].FillText17[0]': data.hearing.date,
+      'topmostSubform[0].Page1[0].FillText18[0]': data.hearing.time,
+      'topmostSubform[0].Page1[0].FillText19[0]': data.hearing.dept,
+      'topmostSubform[0].Page1[0].FillText20[0]': data.hearing.room || '',
+    };
+    
+    // Appearances (Page 1)
+    const appearanceFields = {
+      'topmostSubform[0].Page1[0].FillText21[0]': data.petitioner.name,
+      'topmostSubform[0].Page1[0].FillText22[0]': data.attorney.name,
+      'topmostSubform[0].Page1[0].FillText23[0]': data.conservatee.attorney_name || '',
+    };
+    
+    // Conservatee Information (Page 1)
+    const conservateeFields = {
+      'topmostSubform[0].Page1[0].FillText24[0]': data.conservatee.phone || '',
+      'topmostSubform[0].Page1[0].FillText25[0]': data.conservatee.address,
+      'topmostSubform[0].Page1[0].FillText26[0]': data.conservatee.name,
+    };
+    
+    // Conservator Appointment (Page 2)
+    const appointmentFields = {
+      'topmostSubform[0].Page2[0].FillText35[0]': data.conservator.name || data.petitioner.name,
+      'topmostSubform[0].Page2[0].FillText36[0]': data.conservator.phone || data.petitioner.phone,
+      'topmostSubform[0].Page2[0].FillText37[0]': data.conservator.address || data.petitioner.address,
+      'topmostSubform[0].Page2[0].FillText38[0]': data.conservatee.name, // Person of
+      'topmostSubform[0].Page2[0].FillText39[0]': data.conservator.name || data.petitioner.name,
+      'topmostSubform[0].Page2[0].FillText40[0]': data.conservator.address || data.petitioner.address,
+      'topmostSubform[0].Page2[0].FillText41[0]': data.conservator.phone || data.petitioner.phone,
+    };
+    
+    // Bond Information (Page 2)
+    const bondFields = {
+      'topmostSubform[0].Page2[0].FillText43[0]': data.bond.amount || '',
+      'topmostSubform[0].Page2[0].FillText44[0]': data.bond.blocked_amount || '',
+      'topmostSubform[0].Page2[0].FillText45[0]': data.bond.institution || '',
+    };
+    
+    // Professional Fiduciary Info (if applicable)
+    const fiduciaryFields = {
+      'topmostSubform[0].Page2[0].FillText32[0]': data.conservator.license_number || '',
+      'topmostSubform[0].Page2[0].FillText33[0]': data.conservator.license_issue_date || '',
+      'topmostSubform[0].Page2[0].FillText34[0]': data.conservator.license_expiry_date || '',
+    };
+    
+    // Legal Fees (Page 3)
+    const feeFields = {
+      'topmostSubform[0].Page3[0].FillText46[0]': data.fees.amount || '',
+      'topmostSubform[0].Page3[0].FillText47[0]': data.attorney.name,
+    };
+    
+    // Judge Signature (Page 3)
+    const signatureFields = {
+      'topmostSubform[0].Page3[0].FillText53[0]': formatDate(new Date()),
+    };
+    
+    // Combine all text fields
+    const allTextFields = {
+      ...attorneyFields,
+      ...courtFields,
+      ...caseFields,
+      ...hearingFields,
+      ...appearanceFields,
+      ...conservateeFields,
+      ...appointmentFields,
+      ...bondFields,
+      ...fiduciaryFields,
+      ...feeFields,
+      ...signatureFields
+    };
+    
+    // Fill all text fields
+    for (const [fieldName, value] of Object.entries(allTextFields)) {
+      try {
+        const field = form.getTextField(fieldName);
+        field.setText(value || '');
+        console.log(`Set ${fieldName} to "${value}"`);
+      } catch (e) {
+        console.log(`Could not set field ${fieldName}: ${e.message}`);
+      }
+    }
+    
+    // CHECKBOXES
+    const checkboxes = {
+      // Type of Conservatorship (header)
+      'topmostSubform[0].Page1[0].StdP1Header_sf[0].FormTitle[0].CheckBox22[0]': data.conservatorship_type === 'person',
+      'topmostSubform[0].Page1[0].StdP1Header_sf[0].FormTitle[0].CheckBx22[0]': data.conservatorship_type === 'estate',
+      'topmostSubform[0].Page1[0].StdP1Header_sf[0].FormTitle[0].ChckBx22[0]': data.is_limited || false,
+      'topmostSubform[0].Page1[0].StdP1Header_sf[0].FormTitle[0].CheckBox23[0]': data.is_successor || false,
+      
+      // Appearances (Page 1)
+      'topmostSubform[0].Page1[0].CheckBox08[0]': true, // Petitioner appeared
+      'topmostSubform[0].Page1[0].CheckBox09[0]': true, // Attorney for petitioner
+      'topmostSubform[0].Page1[0].CheckBox14[3]': true, // Person cited present
+      'topmostSubform[0].Page1[0].CheckBox16[0]': true, // Conservatee present
+      
+      // Findings (Page 1)
+      'topmostSubform[0].Page1[0].CheckBox17[0]': data.conservatee.unable_provide_needs !== false,
+      'topmostSubform[0].Page1[0].CheckBox18[0]': data.conservatee.unable_manage_finances !== false,
+      'topmostSubform[0].Page1[0].CheckBox20[0]': true, // Is an adult
+      
+      // Medical consent powers
+      'topmostSubform[0].Page1[0].CheckBox21[0]': data.medical_consent_powers || false,
+      
+      // Appointment type (Page 2)
+      'topmostSubform[0].Page2[0].CheckBox41[0]': !data.is_limited, // conservator
+      'topmostSubform[0].Page2[0].CheckBox41[1]': data.is_limited, // limited conservator
+      'topmostSubform[0].Page2[0].OrderEstAppt[0]': !data.is_limited && data.conservatorship_type === 'estate',
+      'topmostSubform[0].Page2[0].OrderEstAppt[1]': data.is_limited && data.conservatorship_type === 'estate',
+      
+      // Bond (Page 2)
+      'topmostSubform[0].Page2[0].CheckBox44[0]': !data.bond.required,
+      'topmostSubform[0].Page2[0].CheckBox45[0]': data.bond.required,
+      'topmostSubform[0].Page2[0].CheckBox46[0]': data.bond.blocked_amount ? true : false,
+      
+      // Legal fees (Page 3)
+      'topmostSubform[0].Page3[0].CheckBox50[0]': data.fees.amount ? true : false,
+      'topmostSubform[0].Page3[0].CheckBox51[1]': true, // From estate
+      'topmostSubform[0].Page3[0].CheckBox52[0]': true, // Forthwith
+      
+      // Voting rights
+      'topmostSubform[0].Page3[0].CheckBox54[0]': data.conservatee.disqualified_voting || false,
+      
+      // Medical treatment authority
+      'topmostSubform[0].Page3[0].CheckBox55[0]': data.medical_consent_powers || false,
+      
+      // Order effective date
+      'topmostSubform[0].Page3[0].CheckBox85[0]': true,
+      'topmostSubform[0].Page3[0].CheckBox86[0]': true, // Date signed
+    };
+    
+    // Set all checkboxes
+    for (const [fieldName, shouldCheck] of Object.entries(checkboxes)) {
+      try {
+        const checkbox = form.getCheckBox(fieldName);
+        if (shouldCheck) {
+          checkbox.check();
+        } else {
+          checkbox.uncheck();
+        }
+        console.log(`${shouldCheck ? 'Checked' : 'Unchecked'} ${fieldName}`);
+      } catch (e) {
+        console.log(`Could not set checkbox ${fieldName}: ${e.message}`);
+      }
+    }
+    
+    return await pdfDoc.save();
+  } catch (error) {
+    console.error('Error filling GC-340:', error);
+    throw error;
+  }
+}
+// GC-350 Form Filler Function (Letters of Conservatorship)
+async function fillGC350(data, pdfBytes) {
+  try {
+    const pdfDoc = await PDFDocument.load(pdfBytes);
+    const form = pdfDoc.getForm();
+    
+    console.log(`GC-350 has ${form.getFields().length} fields available`);
+    
+    // Attorney Information
+    const attorneyFields = {
+      'topmostSubform[0].Page1[0].EJHeader_sf[0].AttyPartyInfo_sf[0].Add1_ft[0]': data.attorney.name,
+      'topmostSubform[0].Page1[0].EJHeader_sf[0].AttyPartyInfo_sf[0].Add2_ft[0]': data.attorney.firm_name,
+      'topmostSubform[0].Page1[0].EJHeader_sf[0].AttyPartyInfo_sf[0].Add3_ft[0]': data.attorney.street,
+      'topmostSubform[0].Page1[0].EJHeader_sf[0].AttyPartyInfo_sf[0].Add4_ft[0]': `${data.attorney.city}, ${data.attorney.state} ${data.attorney.zip}`,
+      'topmostSubform[0].Page1[0].EJHeader_sf[0].AttyPartyInfo_sf[0].Tel_ft[0]': data.attorney.phone,
+      'topmostSubform[0].Page1[0].EJHeader_sf[0].AttyPartyInfo_sf[0].Tel_ft[1]': data.attorney.email,
+      'topmostSubform[0].Page1[0].EJHeader_sf[0].AttyPartyInfo_sf[0].Tel_ft[2]': data.attorney.fax,
+      'topmostSubform[0].Page1[0].EJHeader_sf[0].AttyPartyInfo_sf[0].Tel_ft[3]': `Petitioner ${data.petitioner.name}`,
+    };
+    
+    // Court Information
+    const courtFields = {
+      'topmostSubform[0].Page1[0].EJHeader_sf[0].CrtInfo_sf[0].Crtname_ft[0]': data.court.county,
+      'topmostSubform[0].Page1[0].EJHeader_sf[0].CrtInfo_sf[0].CrtStreetAdd_ft[0]': data.court.street,
+      'topmostSubform[0].Page1[0].EJHeader_sf[0].CrtInfo_sf[0].CrtMail_ft[0]': data.court.street,
+      'topmostSubform[0].Page1[0].EJHeader_sf[0].CrtInfo_sf[0].CrtCityZip_ft[0]': `${data.court.city}, CA ${data.court.zip}`,
+      'topmostSubform[0].Page1[0].EJHeader_sf[0].CrtInfo_sf[0].CrtBranch[0]': data.court.branch,
+    };
+    
+    // Case Information
+    const caseFields = {
+      'topmostSubform[0].Page1[0].EJHeader_sf[0].CaseNumber_sf_sf[0].CaseNumber_ft[0]': data.case_number || '',
+      'topmostSubform[0].Page1[0].EJHeader_sf[0].Party_sf[0].Party_ft[0]': data.conservatee.name,
+      'topmostSubform[0].Page2[0].Party_sf[0].Party_ft[0]': data.conservatee.name,
+      'topmostSubform[0].Page2[0].CaseNumber_sf_sf[0].CaseNumber_ft[0]': data.case_number || '',
+    };
+    
+    // Appointment Information (Page 1)
+    const appointmentFields = {
+      'topmostSubform[0].Page1[0].FillText75[0]': data.conservator.name || data.petitioner.name,
+      'topmostSubform[0].Page1[0].FillText79[0]': data.conservatee.name,
+      'topmostSubform[0].Page1[0].FillText83[0]': data.conservator.name || data.petitioner.name,
+      'topmostSubform[0].Page1[0].FillText87400[0]': data.conservatee.name,
+      'topmostSubform[0].Page1[0].FillText87[0]': '', // Other specification if needed
+    };
+    
+    // Authority/Powers fields
+    const authorityFields = {
+      'topmostSubform[0].Page1[0].FillTxt87400[0]': '', // Medical authority termination date if limited
+      'topmostSubform[0].Page1[0].FillText6[0]': '0', // Number of pages attached
+    };
+    
+    // Clerk/Court Certification (Page 1)
+    const certificationFields = {
+      'topmostSubform[0].Page1[0].FillText181[0]': formatDate(new Date()),
+    };
+    
+    // Affirmation/Oath (Page 2)
+    const oathFields = {
+      'topmostSubform[0].Page2[0].FillText31[0]': formatDate(new Date()),
+      'topmostSubform[0].Page2[0].FillText35[0]': `${data.court.city}, California`,
+      'topmostSubform[0].Page2[0].FillText43[0]': data.conservator.name || data.petitioner.name,
+      'topmostSubform[0].Page2[0].FillText39[0]': formatDate(new Date()),
+    };
+    
+    // Combine all text fields
+    const allTextFields = {
+      ...attorneyFields,
+      ...courtFields,
+      ...caseFields,
+      ...appointmentFields,
+      ...authorityFields,
+      ...certificationFields,
+      ...oathFields
+    };
+    
+    // Fill all text fields
+    for (const [fieldName, value] of Object.entries(allTextFields)) {
+      try {
+        const field = form.getTextField(fieldName);
+        field.setText(value || '');
+        console.log(`Set ${fieldName} to "${value}"`);
+      } catch (e) {
+        console.log(`Could not set field ${fieldName}: ${e.message}`);
+      }
+    }
+    
+    // CHECKBOXES
+    const checkboxes = {
+      // Type of Conservatorship (header)
+      'topmostSubform[0].Page1[0].EJHeader_sf[0].Title_sf[0].Person[0]': data.conservatorship_type === 'person',
+      'topmostSubform[0].Page1[0].EJHeader_sf[0].Title_sf[0].Estate[0]': data.conservatorship_type === 'estate',
+      'topmostSubform[0].Page1[0].EJHeader_sf[0].Title_sf[0].LimitedConsShip[0]': data.is_limited || false,
+      
+      // Conservator type
+      'topmostSubform[0].Page1[0].CheckBox29[0]': !data.is_limited,
+      'topmostSubform[0].Page1[0].CheckBox30[0]': data.is_limited,
+      
+      // Conservatorship of
+      'topmostSubform[0].Page1[0].CheckBox31[0]': data.conservatorship_type === 'person',
+      'topmostSubform[0].Page1[0].CheckBx31[0]': data.conservatorship_type === 'estate',
+      'topmostSubform[0].Page1[0].CheckBox36[0]': data.conservatorship_type === 'person',
+      'topmostSubform[0].Page1[0].CheckBx36[0]': data.conservatorship_type === 'estate',
+      'topmostSubform[0].Page1[0].CheckBox40[0]': data.conservatorship_type === 'person',
+      'topmostSubform[0].Page1[0].CheckBx40[0]': data.conservatorship_type === 'estate',
+      
+      // Medical consent authority
+      'topmostSubform[0].Page1[0].CheckBox217[0]': data.medical_consent_powers || false,
+      'topmostSubform[0].Page1[0].CheckBox218[0]': false, // Religious healing
+      'topmostSubform[0].Page1[0].CheckBox16[0]': false, // Limited duration
+      
+      // Placement authority
+      'topmostSubform[0].Page1[0].CheckBox17[0]': data.placement_authority || false,
+      'topmostSubform[0].Page1[0].CheckBox1001[0]': data.dementia_authority || false,
+      
+      // Powers and conditions
+      'topmostSubform[0].Page1[0].CheckBox2171[0]': data.independent_powers || false,
+      'topmostSubform[0].Page1[0].CheckBox1702[0]': !data.take_possession || false,
+      
+      // Other authority/conditions (usually left unchecked unless specified)
+      'topmostSubform[0].Page1[0].CheckBox1[0]': false, // Other powers
+      'topmostSubform[0].Page1[0].CheckBox2181[0]': false, // Property conditions
+      'topmostSubform[0].Page1[0].CheckBox1601[0]': false, // Care conditions
+      'topmostSubform[0].Page1[0].CheckBox1701[0]': data.is_limited, // Limited conservator person powers
+      'topmostSubform[0].Page1[0].CheckBox2182[0]': data.is_limited, // Limited conservator estate powers
+      'topmostSubform[0].Page1[0].CheckBox1602[0]': false, // Other conditions
+      
+      // Appointment certification
+      'topmostSubform[0].Page1[0].#area[0].CheckBox61[0]': true,
+      
+      // Affirmation (Page 2)
+      'topmostSubform[0].Page2[0].CheckBox2184[0]': !data.is_limited,
+      'topmostSubform[0].Page2[0].CheckBx2184[0]': data.is_limited,
+    };
+    
+    // Set all checkboxes
+    for (const [fieldName, shouldCheck] of Object.entries(checkboxes)) {
+      try {
+        const checkbox = form.getCheckBox(fieldName);
+        if (shouldCheck) {
+          checkbox.check();
+        } else {
+          checkbox.uncheck();
+        }
+        console.log(`${shouldCheck ? 'Checked' : 'Unchecked'} ${fieldName}`);
+      } catch (e) {
+        console.log(`Could not set checkbox ${fieldName}: ${e.message}`);
+      }
+    }
+    
+    return await pdfDoc.save();
+  } catch (error) {
+    console.error('Error filling GC-350:', error);
+    throw error;
+  }
+}
