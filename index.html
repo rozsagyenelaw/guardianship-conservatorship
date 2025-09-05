@@ -1,0 +1,1865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>California Guardianship & Conservatorship Forms Generator - Law 
+Offices of Rozsa Gyene</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 
+Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+            text-align: center;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+            text-align: center;
+        }
+        
+        .form-type-selector {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            justify-content: center;
+        }
+        
+        .form-type-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .form-type-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .form-type-btn.active {
+            background: linear-gradient(135deg, #28a745, #20c997);
+        }
+        
+        .form-type-btn.inactive {
+            background: #ccc;
+            opacity: 0.6;
+        }
+        
+        .form-section {
+            margin-bottom: 30px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            display: none;
+        }
+        
+        .form-section.active {
+            display: block;
+        }
+        
+        .form-section h2 {
+            color: #495057;
+            margin-bottom: 20px;
+            font-size: 20px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        label {
+            color: #495057;
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        .required {
+            color: #dc3545;
+        }
+        
+        input, select, textarea {
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .radio-group, .checkbox-group {
+            display: flex;
+            gap: 20px;
+            margin-top: 5px;
+            flex-wrap: wrap;
+        }
+        
+        .radio-item, .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .submit-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .submit-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .test-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+            font-weight: 600;
+        }
+        
+        .test-btn:hover {
+            background: #218838;
+        }
+        
+        .help-text {
+            font-size: 12px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .loading.active {
+            display: block;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .result {
+            display: none;
+            margin-top: 30px;
+            padding: 20px;
+            background: #d4edda;
+            border: 1px solid #28a745;
+            border-radius: 10px;
+            color: #155724;
+        }
+        
+        .result.active {
+            display: block;
+        }
+        
+        .download-section {
+            margin-top: 30px;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .download-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .download-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .download-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .form-number {
+            font-size: 18px;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .form-name {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+        
+        .download-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+        
+        .download-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .error {
+            display: none;
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8d7da;
+            border: 1px solid #dc3545;
+            border-radius: 10px;
+            color: #721c24;
+        }
+        
+        .error.active {
+            display: block;
+        }
+        
+        .minor-entry {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .minor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .minor-number {
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .remove-minor-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .remove-minor-btn:hover {
+            background: #c82333;
+        }
+        
+        .add-minor-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        
+        .add-minor-btn:hover {
+            background: #218838;
+        }
+        
+        .screening-note {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 20px;
+            color: #856404;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>California Guardianship & Conservatorship Forms Generator</h1>
+        <p class="subtitle">Law Offices of Rozsa Gyene</p>
+        
+        <!-- Form Type Selection -->
+        <div class="form-type-selector">
+            <button id="guardianshipBtn" class="form-type-btn active" 
+onclick="selectFormType('guardianship')">
+                Guardianship (Minor)
+            </button>
+            <button id="conservatorshipBtn" class="form-type-btn" 
+onclick="selectFormType('conservatorship')">
+                Conservatorship (Adult)
+            </button>
+        </div>
+        
+        <!-- Quick Test Button -->
+        <div style="text-align: center; margin-bottom: 30px;">
+            <button class="test-btn" onclick="fillTestData()">Fill with 
+Test Data</button>
+        </div>
+        
+        <form id="gcForm">
+            <input type="hidden" id="formType" name="form_type" 
+value="guardianship">
+            
+            <!-- GUARDIANSHIP SECTIONS -->
+            <div id="guardianshipSections">
+                <!-- Petitioner Information (if different from guardian) 
+-->
+                <div class="form-section active">
+                    <h2>Petitioner Information</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Petitioner Name <span 
+class="required">*</span></label>
+                            <input type="text" name="petitioner_name" 
+required>
+                            <span class="help-text">Person filing the 
+petition</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Relationship to Minor <span 
+class="required">*</span></label>
+                            <input type="text" 
+name="petitioner_relationship" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Petitioner Address <span 
+class="required">*</span></label>
+                            <input type="text" name="petitioner_address" 
+required>
+                        </div>
+                        <div class="form-group">
+                            <label>Petitioner Phone <span 
+class="required">*</span></label>
+                            <input type="tel" name="petitioner_phone" 
+required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Are you the proposed guardian?</label>
+                        <div class="radio-group">
+                            <div class="radio-item">
+                                <input type="radio" 
+name="petitioner_is_guardian" value="yes" id="petitioner_is_guardian_yes" 
+onclick="toggleGuardianSection(true)">
+                                <label 
+for="petitioner_is_guardian_yes">Yes</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" 
+name="petitioner_is_guardian" value="no" id="petitioner_is_guardian_no" 
+onclick="toggleGuardianSection(false)">
+                                <label 
+for="petitioner_is_guardian_no">No</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Minor Information -->
+                <div class="form-section active">
+                    <h2>Minor Information</h2>
+                    <div id="minorsContainer">
+                        <!-- Minors will be added here dynamically -->
+                    </div>
+                    <button type="button" class="add-minor-btn" 
+onclick="addMinor()">+ Add Another Minor</button>
+                    <span class="help-text" style="display: block; 
+margin-top: 10px;">Add all minors for whom guardianship is being 
+requested.</span>
+                </div>
+                
+                <!-- Guardian Information -->
+                <div class="form-section active" id="guardianSection">
+                    <h2>Proposed Guardian Information</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Guardian Full Name <span 
+class="required">*</span></label>
+                            <input type="text" name="guardian_name" 
+required>
+                        </div>
+                        <div class="form-group">
+                            <label>Relationship to Minor <span 
+class="required">*</span></label>
+                            <select name="guardian_relationship" required>
+                                <option value="">Select...</option>
+                                <option value="Parent">Parent</option>
+                                <option 
+value="Grandparent">Grandparent</option>
+                                <option value="Aunt">Aunt</option>
+                                <option value="Uncle">Uncle</option>
+                                <option value="Sibling">Sibling</option>
+                                <option 
+value="Step-parent">Step-parent</option>
+                                <option value="Family Friend">Family 
+Friend</option>
+                                <option value="Other Relative">Other 
+Relative</option>
+                                <option 
+value="Non-relative">Non-relative</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Guardian Address <span 
+class="required">*</span></label>
+                            <input type="text" name="guardian_address" 
+required>
+                        </div>
+                        <div class="form-group">
+                            <label>Guardian Phone Number <span 
+class="required">*</span></label>
+                            <input type="tel" name="guardian_phone" 
+required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Guardian Date of Birth <span 
+class="required">*</span></label>
+                            <input type="date" name="guardian_dob" 
+required>
+                        </div>
+                        <div class="form-group">
+                            <label>Social Security Number <span 
+class="required">*</span></label>
+                            <input type="text" name="guardian_ssn" 
+placeholder="XXX-XX-XXXX" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Driver's License Number</label>
+                            <input type="text" name="guardian_dl">
+                        </div>
+                        <div class="form-group">
+                            <label>State</label>
+                            <input type="text" name="guardian_state" 
+value="CA">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Home Phone</label>
+                            <input type="tel" name="guardian_home_phone">
+                        </div>
+                        <div class="form-group">
+                            <label>Work Phone</label>
+                            <input type="tel" name="guardian_work_phone">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Screening Questions (Required for GC-212) -->
+                <div class="form-section active">
+                    <h2>Background Screening (Confidential - Required for 
+GC-212)</h2>
+                    <div class="screening-note">
+                        This information is required by the court and will 
+be kept confidential. Answer all questions truthfully.
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Are you related to the minor? <span 
+class="required">*</span></label>
+                        <div class="radio-group">
+                            <div class="radio-item">
+                                <input type="radio" 
+name="related_to_minor" value="yes" required>
+                                <label>Yes</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" 
+name="related_to_minor" value="no" required>
+                                <label>No</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Have you been convicted of a felony? <span 
+class="required">*</span></label>
+                        <div class="radio-group">
+                            <div class="radio-item">
+                                <input type="radio" 
+name="convicted_felony" value="yes" required>
+                                <label>Yes</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" 
+name="convicted_felony" value="no" required>
+                                <label>No</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Have you been arrested for drug or 
+alcohol-related offenses?</label>
+                        <div class="radio-group">
+                            <div class="radio-item">
+                                <input type="radio" 
+name="arrested_drug_alcohol" value="yes">
+                                <label>Yes</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" 
+name="arrested_drug_alcohol" value="no">
+                                <label>No</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Have you been convicted of a misdemeanor 
+involving violence? <span class="required">*</span></label>
+                        <div class="radio-group">
+                            <div class="radio-item">
+                                <input type="radio" 
+name="convicted_misdemeanor_violence" value="yes" required>
+                                <label>Yes</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" 
+name="convicted_misdemeanor_violence" value="no" required>
+                                <label>No</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Are you subject to a domestic violence 
+restraining order? <span class="required">*</span></label>
+                        <div class="radio-group">
+                            <div class="radio-item">
+                                <input type="radio" 
+name="domestic_violence_restraining" value="yes" required>
+                                <label>Yes</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" 
+name="domestic_violence_restraining" value="no" required>
+                                <label>No</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Have you been found by a court to have 
+abused or neglected a child? <span class="required">*</span></label>
+                        <div class="radio-group">
+                            <div class="radio-item">
+                                <input type="radio" 
+name="court_found_abused_child" value="yes" required>
+                                <label>Yes</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" 
+name="court_found_abused_child" value="no" required>
+                                <label>No</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Have you been found by a court to have 
+abused or neglected a dependent adult? <span 
+class="required">*</span></label>
+                        <div class="radio-group">
+                            <div class="radio-item">
+                                <input type="radio" 
+name="court_found_abused_adult" value="yes" required>
+                                <label>Yes</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" 
+name="court_found_abused_adult" value="no" required>
+                                <label>No</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Are you under a conservatorship? <span 
+class="required">*</span></label>
+                        <div class="radio-group">
+                            <div class="radio-item">
+                                <input type="radio" 
+name="under_conservatorship" value="yes" required>
+                                <label>Yes</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" 
+name="under_conservatorship" value="no" required>
+                                <label>No</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Do you have a financial conflict of 
+interest? <span class="required">*</span></label>
+                        <div class="radio-group">
+                            <div class="radio-item">
+                                <input type="radio" 
+name="financial_conflict" value="yes" required>
+                                <label>Yes</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" 
+name="financial_conflict" value="no" required>
+                                <label>No</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Have you been a guardian, conservator, or 
+trustee before? <span class="required">*</span></label>
+                        <div class="radio-group">
+                            <div class="radio-item">
+                                <input type="radio" 
+name="been_guardian_conservator_trustee" value="yes" required>
+                                <label>Yes</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" 
+name="been_guardian_conservator_trustee" value="no" required>
+                                <label>No</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Have you been removed as a guardian, 
+conservator, or trustee? <span class="required">*</span></label>
+                        <div class="radio-group">
+                            <div class="radio-item">
+                                <input type="radio" 
+name="been_removed_as_guardian" value="yes" required>
+                                <label>Yes</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" 
+name="been_removed_as_guardian" value="no" required>
+                                <label>No</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Does the minor currently live with you? 
+<span class="required">*</span></label>
+                        <div class="radio-group">
+                            <div class="radio-item">
+                                <input type="radio" 
+name="minor_lives_with_you" value="yes" required>
+                                <label>Yes</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" 
+name="minor_lives_with_you" value="no" required>
+                                <label>No</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Guardianship Type -->
+                <div class="form-section active">
+                    <h2>Type of Guardianship</h2>
+                    <div class="form-group">
+                        <label>What type of guardianship are you 
+requesting? <span class="required">*</span></label>
+                        <select name="guardianship_type" required>
+                            <option value="">Select...</option>
+                            <option value="person">Guardianship of the 
+Person Only</option>
+                            <option value="estate">Guardianship of the 
+Estate Only</option>
+                            <option value="both">Both Person and 
+Estate</option>
+                        </select>
+                        <span class="help-text">Person = custody and care 
+decisions. Estate = financial decisions.</span>
+                    </div>
+                </div>
+
+                <!-- Estate Information -->
+                <div class="form-section active">
+                    <h2>Minor's Estate Information</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Personal Property Value</label>
+                            <input type="number" 
+name="personal_property_value" placeholder="0">
+                            <span class="help-text">Bank accounts, stocks, 
+vehicles, etc.</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Real Property Value</label>
+                            <input type="number" 
+name="real_property_value" placeholder="0">
+                            <span class="help-text">Real estate owned by 
+minor</span>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Is bond required?</label>
+                            <div class="radio-group">
+                                <div class="radio-item">
+                                    <input type="radio" 
+name="bond_required" value="yes" id="bond_yes">
+                                    <label for="bond_yes">Yes</label>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" 
+name="bond_required" value="no" id="bond_no">
+                                    <label for="bond_no">No</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Bond Amount (if required)</label>
+                            <input type="number" name="bond_amount" 
+placeholder="0">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Blocked Account Amount</label>
+                        <input type="number" name="blocked_account" 
+placeholder="0">
+                        <span class="help-text">Amount to be placed in 
+blocked account</span>
+                    </div>
+                </div>
+                
+                <!-- Parents Information -->
+                <div class="form-section active">
+                    <h2>Parents Information</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Mother's Name</label>
+                            <input type="text" name="mother_name">
+                        </div>
+                        <div class="form-group">
+                            <label>Mother's Status</label>
+                            <select name="mother_status">
+                                <option value="">Select...</option>
+                                <option value="Living">Living</option>
+                                <option value="Deceased">Deceased</option>
+                                <option value="Unknown">Unknown</option>
+                                <option value="Whereabouts 
+Unknown">Whereabouts Unknown</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Mother's Address (if living)</label>
+                        <input type="text" name="mother_address">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Father's Name</label>
+                            <input type="text" name="father_name">
+                        </div>
+                        <div class="form-group">
+                            <label>Father's Status</label>
+                            <select name="father_status">
+                                <option value="">Select...</option>
+                                <option value="Living">Living</option>
+                                <option value="Deceased">Deceased</option>
+                                <option value="Unknown">Unknown</option>
+                                <option value="Whereabouts 
+Unknown">Whereabouts Unknown</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Father's Address (if living)</label>
+                        <input type="text" name="father_address">
+                    </div>
+                    <div class="form-group">
+                        <label>Reason for Guardianship <span 
+class="required">*</span></label>
+                        <textarea name="guardianship_reason" 
+placeholder="Explain why guardianship is necessary (e.g., parents 
+deceased, unable to care for child, etc.)" required></textarea>
+                    </div>
+                </div>
+
+                <!-- Powers Requested -->
+                <div class="form-section active">
+                    <h2>Powers Requested</h2>
+                    <div class="form-group">
+                        <label>Are you requesting independent 
+powers?</label>
+                        <div class="radio-group">
+                            <div class="radio-item">
+                                <input type="radio" 
+name="independent_powers" value="yes" id="independent_yes">
+                                <label for="independent_yes">Yes</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" 
+name="independent_powers" value="no" id="independent_no">
+                                <label for="independent_no">No</label>
+                            </div>
+                        </div>
+                        <span class="help-text">Independent powers allow 
+certain actions without court approval</span>
+                    </div>
+                    <div class="form-group">
+                        <label>Do you want to dispense with notice to any 
+relatives?</label>
+                        <div class="radio-group">
+                            <div class="radio-item">
+                                <input type="radio" name="dispense_notice" 
+value="yes" id="dispense_yes">
+                                <label for="dispense_yes">Yes</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" name="dispense_notice" 
+value="no" id="dispense_no">
+                                <label for="dispense_no">No</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- CONSERVATORSHIP SECTIONS -->
+            <div id="conservatorshipSections">
+                <!-- Petitioner Information for Conservatorship -->
+                <div class="form-section">
+                    <h2>Petitioner Information</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Petitioner Name <span 
+class="required">*</span></label>
+                            <input type="text" name="cons_petitioner_name" 
+required>
+                        </div>
+                        <div class="form-group">
+                            <label>Relationship to Conservatee <span 
+class="required">*</span></label>
+                            <input type="text" 
+name="cons_petitioner_relationship" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Petitioner Address <span 
+class="required">*</span></label>
+                            <input type="text" 
+name="cons_petitioner_address" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Petitioner Phone <span 
+class="required">*</span></label>
+                            <input type="tel" name="cons_petitioner_phone" 
+required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Proposed Conservatee Information -->
+                <div class="form-section">
+                    <h2>Proposed Conservatee Information</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Full Name <span 
+class="required">*</span></label>
+                            <input type="text" name="conservatee_name" 
+required>
+                        </div>
+                        <div class="form-group">
+                            <label>Date of Birth <span 
+class="required">*</span></label>
+                            <input type="date" name="conservatee_dob" 
+required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Current Address <span 
+class="required">*</span></label>
+                            <input type="text" name="conservatee_address" 
+required>
+                        </div>
+                        <div class="form-group">
+                            <label>Phone Number</label>
+                            <input type="tel" name="conservatee_phone">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Social Security Number <span 
+class="required">*</span></label>
+                            <input type="text" name="conservatee_ssn" 
+placeholder="XXX-XX-XXXX" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Current Living Situation <span 
+class="required">*</span></label>
+                            <select name="conservatee_living" required>
+                                <option value="">Select...</option>
+                                <option value="Own Home">Own Home</option>
+                                <option value="Family Home">Family 
+Home</option>
+                                <option value="Assisted Living">Assisted 
+Living Facility</option>
+                                <option value="Nursing Home">Nursing 
+Home</option>
+                                <option value="Hospital">Hospital</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Proposed Conservator Information -->
+                <div class="form-section">
+                    <h2>Proposed Conservator Information</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Full Name <span 
+class="required">*</span></label>
+                            <input type="text" name="conservator_name" 
+required>
+                        </div>
+                        <div class="form-group">
+                            <label>Relationship to Conservatee <span 
+class="required">*</span></label>
+                            <select name="conservator_relationship" 
+required>
+                                <option value="">Select...</option>
+                                <option value="Spouse">Spouse</option>
+                                <option value="Child">Child</option>
+                                <option value="Parent">Parent</option>
+                                <option value="Sibling">Sibling</option>
+                                <option value="Other Relative">Other 
+Relative</option>
+                                <option value="Professional 
+Conservator">Professional Conservator</option>
+                                <option value="Friend">Friend</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Address <span 
+class="required">*</span></label>
+                            <input type="text" name="conservator_address" 
+required>
+                        </div>
+                        <div class="form-group">
+                            <label>Phone Number <span 
+class="required">*</span></label>
+                            <input type="tel" name="conservator_phone" 
+required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Date of Birth <span 
+class="required">*</span></label>
+                            <input type="date" name="conservator_dob" 
+required>
+                        </div>
+                        <div class="form-group">
+                            <label>Social Security Number <span 
+class="required">*</span></label>
+                            <input type="text" name="conservator_ssn" 
+placeholder="XXX-XX-XXXX" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Relatives Information -->
+                <div class="form-section">
+                    <h2>Relatives Information (For Notice 
+Requirements)</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Spouse Name (if any)</label>
+                            <input type="text" name="spouse_name">
+                        </div>
+                        <div class="form-group">
+                            <label>Spouse Address</label>
+                            <input type="text" name="spouse_address">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Children (Names and Addresses)</label>
+                        <textarea name="children_info" placeholder="List 
+each child's name and address on a separate line"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Parents (Names and Addresses)</label>
+                        <textarea name="parents_info" placeholder="List 
+each parent's name and address on a separate line"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Siblings (Names and Addresses)</label>
+                        <textarea name="siblings_info" placeholder="List 
+each sibling's name and address on a separate line"></textarea>
+                    </div>
+                </div>
+                
+                <!-- Type of Conservatorship -->
+                <div class="form-section">
+                    <h2>Type of Conservatorship</h2>
+                    <div class="form-group">
+                        <label>What type of conservatorship are you 
+requesting? <span class="required">*</span></label>
+                        <select name="conservatorship_type" required>
+                            <option value="">Select...</option>
+                            <option value="person">Conservatorship of the 
+Person</option>
+                            <option value="estate">Conservatorship of the 
+Estate</option>
+                            <option value="both">Both Person and 
+Estate</option>
+                            <option value="limited">Limited 
+Conservatorship (Developmentally Disabled)</option>
+                        </select>
+                        <span class="help-text">Person = personal care 
+decisions. Estate = financial decisions. Limited = for developmentally 
+disabled adults.</span>
+                    </div>
+                </div>
+                
+                <!-- Capacity Information -->
+                <div class="form-section">
+                    <h2>Conservatee's Capacity</h2>
+                    <div class="form-group">
+                        <label>Reason for Conservatorship <span 
+class="required">*</span></label>
+                        <textarea name="conservatorship_reason" 
+placeholder="Explain why conservatorship is necessary (medical condition, 
+mental capacity issues, etc.)" required></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Can conservatee provide for personal 
+needs? <span class="required">*</span></label>
+                            <div class="radio-group">
+                                <div class="radio-item">
+                                    <input type="radio" 
+name="personal_needs" value="yes" id="personal_needs_yes" required>
+                                    <label 
+for="personal_needs_yes">Yes</label>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" 
+name="personal_needs" value="no" id="personal_needs_no" required>
+                                    <label 
+for="personal_needs_no">No</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Can conservatee manage financial 
+affairs? <span class="required">*</span></label>
+                            <div class="radio-group">
+                                <div class="radio-item">
+                                    <input type="radio" 
+name="financial_management" value="yes" id="financial_yes" required>
+                                    <label for="financial_yes">Yes</label>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" 
+name="financial_management" value="no" id="financial_no" required>
+                                    <label for="financial_no">No</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Medical/Mental Health Diagnosis</label>
+                        <textarea name="medical_diagnosis" 
+placeholder="Describe any medical or mental health conditions that affect 
+capacity"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Have less restrictive alternatives been 
+considered? <span class="required">*</span></label>
+                        <div class="radio-group">
+                            <div class="radio-item">
+                                <input type="radio" 
+name="alternatives_considered" value="yes" required>
+                                <label>Yes</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" 
+name="alternatives_considered" value="no" required>
+                                <label>No</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>If yes, explain why alternatives are not 
+sufficient</label>
+                        <textarea name="alternatives_explanation" 
+placeholder="Explain why power of attorney, trust, or other alternatives 
+won't work"></textarea>
+                    </div>
+                </div>
+                
+                <!-- Estate Information -->
+                <div class="form-section">
+                    <h2>Estate Information</h2>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Personal Property Value</label>
+                            <input type="number" 
+name="conservatee_personal_property" placeholder="Enter amount without $">
+                            <span class="help-text">Bank accounts, 
+investments, vehicles, etc.</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Real Property Value</label>
+                            <input type="number" 
+name="conservatee_real_property" placeholder="Enter amount without $">
+                            <span class="help-text">Real estate owned by 
+conservatee</span>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Monthly Income</label>
+                            <input type="number" name="conservatee_income" 
+placeholder="Enter amount without $">
+                            <span class="help-text">Social Security, 
+pensions, etc.</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Monthly Expenses</label>
+                            <input type="number" 
+name="conservatee_expenses" placeholder="Enter amount without $">
+                            <span class="help-text">Housing, food, 
+medical, etc.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Powers Requested for Conservatorship -->
+                <div class="form-section">
+                    <h2>Powers Requested</h2>
+                    <div class="form-group">
+                        <label>Are you requesting independent 
+powers?</label>
+                        <div class="radio-group">
+                            <div class="radio-item">
+                                <input type="radio" 
+name="cons_independent_powers" value="yes">
+                                <label>Yes</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" 
+name="cons_independent_powers" value="no">
+                                <label>No</label>
+                            </div>
+                        </div>
+                        <span class="help-text">Independent powers allow 
+certain actions without court approval</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- SHARED SECTIONS -->
+            <!-- Hearing Information -->
+            <div class="form-section active">
+                <h2>Hearing Information</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Requested Hearing Date</label>
+                        <input type="date" name="hearing_date">
+                        <span class="help-text">Leave blank for court to 
+assign</span>
+                    </div>
+                    <div class="form-group">
+                        <label>Preferred Time</label>
+                        <input type="time" name="hearing_time" 
+value="09:00">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Department</label>
+                        <input type="text" name="hearing_dept" 
+placeholder="Will be assigned by court">
+                    </div>
+                    <div class="form-group">
+                        <label>Room</label>
+                        <input type="text" name="hearing_room" 
+placeholder="Will be assigned by court">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Attorney Information -->
+            <div class="form-section active">
+                <h2>Attorney Information</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Attorney Name</label>
+                        <input type="text" name="attorney_name" 
+value="ROZSA GYENE, ESQ." readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>State Bar Number</label>
+                        <input type="text" name="attorney_bar" 
+value="208356" readonly>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Firm Name</label>
+                    <input type="text" name="firm_name" value="LAW OFFICES 
+OF ROZSA GYENE" readonly>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Street Address</label>
+                        <input type="text" name="firm_street" value="450 N 
+BRAND BLVD SUITE 600" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>City</label>
+                        <input type="text" name="firm_city" 
+value="GLENDALE" readonly>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>State</label>
+                        <input type="text" name="firm_state" value="CA" 
+readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>ZIP</label>
+                        <input type="text" name="firm_zip" value="91203" 
+readonly>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Phone</label>
+                        <input type="text" name="firm_phone" 
+value="818-291-6217" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Fax</label>
+                        <input type="text" name="firm_fax" 
+value="818-291-6205" readonly>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" name="firm_email" 
+value="ROZSAGYENELAW@YAHOO.COM" readonly>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Attorney Fees Requested</label>
+                        <input type="number" name="attorney_fees" 
+placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Fee Payment Terms</label>
+                        <select name="fee_terms">
+                            <option value="forthwith">Forthwith</option>
+                            <option value="upon_approval">Upon 
+Approval</option>
+                            <option value="from_estate">From 
+Estate</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Court Information -->
+            <div class="form-section active">
+                <h2>Court Information</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>County <span 
+class="required">*</span></label>
+                        <select name="court_county" required>
+                            <option value="LOS ANGELES" selected>Los 
+Angeles</option>
+                            <option value="ORANGE">Orange</option>
+                            <option value="SAN DIEGO">San Diego</option>
+                            <option value="RIVERSIDE">Riverside</option>
+                            <option value="SAN BERNARDINO">San 
+Bernardino</option>
+                            <option value="VENTURA">Ventura</option>
+                            <option value="SANTA BARBARA">Santa 
+Barbara</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Court Branch</label>
+                        <input type="text" name="court_branch" 
+value="STANLEY MOSK COURTHOUSE">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Case Number (if known)</label>
+                    <input type="text" name="case_number" 
+placeholder="Leave blank if new case">
+                </div>
+            </div>
+            
+            <button type="submit" class="submit-btn">Generate 
+Forms</button>
+        </form>
+        
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p style="margin-top: 20px;">Generating your forms...</p>
+            <p style="font-size: 14px; color: #666;">This may take a 
+moment as we fill out all forms.</p>
+        </div>
+        
+        <div id="result" class="result">
+            <h3>✓ Forms Generated Successfully!</h3>
+            <p>Your California guardianship/conservatorship forms have 
+been generated and are ready for download.</p>
+            
+            <div class="download-section">
+                <h3>Download Your Completed Forms</h3>
+                <div class="download-grid" id="downloadGrid">
+                    <!-- Download cards will be inserted here -->
+                </div>
+            </div>
+        </div>
+        
+        <div id="error" class="error">
+            <h3>Error</h3>
+            <p id="errorMessage"></p>
+        </div>
+    </div>
+    
+    <script>
+        let currentFormType = 'guardianship';
+        let generatedPDFs = {};
+        let minorCount = 0;
+        
+        function selectFormType(type) {
+            currentFormType = type;
+            document.getElementById('formType').value = type;
+            
+            // Update button styles
+            
+document.getElementById('guardianshipBtn').classList.toggle('active', type 
+=== 'guardianship');
+            
+document.getElementById('conservatorshipBtn').classList.toggle('active', 
+type === 'conservatorship');
+            
+            // Show/hide form sections
+            const guardianshipSections = 
+document.getElementById('guardianshipSections');
+            const conservatorshipSections = 
+document.getElementById('conservatorshipSections');
+            
+            if (type === 'guardianship') {
+                guardianshipSections.style.display = 'block';
+                conservatorshipSections.style.display = 'none';
+                // Show shared sections
+                
+document.querySelectorAll('.form-section.active').forEach(section => {
+                    if (!section.closest('#conservatorshipSections')) {
+                        section.style.display = 'block';
+                    }
+                });
+            } else {
+                guardianshipSections.style.display = 'none';
+                conservatorshipSections.style.display = 'block';
+                // Show conservatorship sections
+                document.querySelectorAll('#conservatorshipSections 
+.form-section').forEach(section => {
+                    section.style.display = 'block';
+                });
+                // Show shared sections
+                
+document.querySelectorAll('.form-section.active').forEach(section => {
+                    if (!section.closest('#guardianshipSections')) {
+                        section.style.display = 'block';
+                    }
+                });
+            }
+            
+            // Clear form
+            document.getElementById('gcForm').reset();
+            document.getElementById('formType').value = type;
+            
+            // Reset minors
+            if (type === 'guardianship') {
+                document.getElementById('minorsContainer').innerHTML = '';
+                minorCount = 0;
+                addMinor();
+            }
+        }
+
+        function toggleGuardianSection(isPetitionerGuardian) {
+            const guardianSection = 
+document.getElementById('guardianSection');
+            if (isPetitionerGuardian) {
+                // Copy petitioner info to guardian fields
+                const petName = 
+document.querySelector('input[name="petitioner_name"]').value;
+                const petAddress = 
+document.querySelector('input[name="petitioner_address"]').value;
+                const petPhone = 
+document.querySelector('input[name="petitioner_phone"]').value;
+                
+                
+document.querySelector('input[name="guardian_name"]').value = petName;
+                
+document.querySelector('input[name="guardian_address"]').value = 
+petAddress;
+                
+document.querySelector('input[name="guardian_phone"]').value = petPhone;
+                
+                guardianSection.style.opacity = '0.6';
+            } else {
+                guardianSection.style.opacity = '1';
+            }
+        }
+        
+        function addMinor(name = '', dob = '', schoolName = '', 
+schoolPhone = '', currentAddress = '') {
+            minorCount++;
+            const minorDiv = document.createElement('div');
+            minorDiv.className = 'minor-entry';
+            minorDiv.id = `minor_${minorCount}`;
+            
+            minorDiv.innerHTML = `
+                <div class="minor-header">
+                    <span class="minor-number">Minor #${minorCount}</span>
+                    ${minorCount > 1 ? `<button type="button" 
+class="remove-minor-btn" 
+onclick="removeMinor('minor_${minorCount}')">Remove</button>` : ''}
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Full Name <span 
+class="required">*</span></label>
+                        <input type="text" name="minor_name_${minorCount}" 
+value="${name}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Date of Birth <span 
+class="required">*</span></label>
+                        <input type="date" name="minor_dob_${minorCount}" 
+value="${dob}" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Current Address <span 
+class="required">*</span></label>
+                        <input type="text" 
+name="minor_address_${minorCount}" value="${currentAddress}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>School Name</label>
+                        <input type="text" 
+name="minor_school_${minorCount}" value="${schoolName}">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>School Phone</label>
+                        <input type="tel" 
+name="minor_school_phone_${minorCount}" value="${schoolPhone}">
+                    </div>
+                    <div class="form-group">
+                        <label>Home Phone</label>
+                        <input type="tel" 
+name="minor_home_phone_${minorCount}">
+                    </div>
+                </div>
+            `;
+            
+            
+document.getElementById('minorsContainer').appendChild(minorDiv);
+        }
+        
+        function removeMinor(minorId) {
+            document.getElementById(minorId).remove();
+        }
+        
+        function fillTestData() {
+            // Select form type first
+            selectFormType('guardianship');
+            
+            // Clear existing minors and add test minor
+            document.getElementById('minorsContainer').innerHTML = '';
+            minorCount = 0;
+            addMinor('Emma Johnson', '2010-05-15', 'Lincoln Elementary 
+School', '(555) 123-4567', '123 Oak Street, Los Angeles, CA 90001');
+            
+            // Petitioner information
+            document.querySelector('input[name="petitioner_name"]').value 
+= 'Sarah Johnson';
+            
+document.querySelector('input[name="petitioner_relationship"]').value = 
+'Grandmother';
+            
+document.querySelector('input[name="petitioner_address"]').value = '456 
+Maple Avenue, Los Angeles, CA 90002';
+            document.querySelector('input[name="petitioner_phone"]').value 
+= '(555) 987-6543';
+            document.querySelector('#petitioner_is_guardian_yes').checked 
+= true;
+            
+            // Fill guardian information (same as petitioner for test)
+            document.querySelector('input[name="guardian_name"]').value = 
+'Sarah Johnson';
+            
+document.querySelector('select[name="guardian_relationship"]').value = 
+'Grandparent';
+            document.querySelector('input[name="guardian_address"]').value 
+= '456 Maple Avenue, Los Angeles, CA 90002';
+            document.querySelector('input[name="guardian_phone"]').value = 
+'(555) 987-6543';
+            document.querySelector('input[name="guardian_dob"]').value = 
+'1965-08-20';
+            document.querySelector('input[name="guardian_ssn"]').value = 
+'123-45-6789';
+            document.querySelector('input[name="guardian_dl"]').value = 
+'D1234567';
+            
+            // Screening questions - all No for clean background
+            
+document.querySelector('input[name="related_to_minor"][value="yes"]').checked 
+= true;
+            
+document.querySelector('input[name="convicted_felony"][value="no"]').checked 
+= true;
+            
+document.querySelector('input[name="arrested_drug_alcohol"][value="no"]').checked 
+= true;
+            
+document.querySelector('input[name="convicted_misdemeanor_violence"][value="no"]').checked 
+= true;
+            
+document.querySelector('input[name="domestic_violence_restraining"][value="no"]').checked 
+= true;
+            
+document.querySelector('input[name="court_found_abused_child"][value="no"]').checked 
+= true;
+            
+document.querySelector('input[name="court_found_abused_adult"][value="no"]').checked 
+= true;
+            
+document.querySelector('input[name="under_conservatorship"][value="no"]').checked 
+= true;
+            
+document.querySelector('input[name="financial_conflict"][value="no"]').checked 
+= true;
+            
+document.querySelector('input[name="been_guardian_conservator_trustee"][value="no"]').checked 
+= true;
+            
+document.querySelector('input[name="been_removed_as_guardian"][value="no"]').checked 
+= true;
+            
+document.querySelector('input[name="minor_lives_with_you"][value="yes"]').checked 
+= true;
+            
+            // Guardianship type
+            
+document.querySelector('select[name="guardianship_type"]').value = 
+'person';
+            
+            // Estate information
+            
+document.querySelector('input[name="personal_property_value"]').value = 
+'5000';
+            
+document.querySelector('input[name="real_property_value"]').value = '0';
+            document.querySelector('#bond_no').checked = true;
+            
+            // Parents information
+            document.querySelector('input[name="mother_name"]').value = 
+'Jennifer Johnson';
+            document.querySelector('select[name="mother_status"]').value = 
+'Deceased';
+            document.querySelector('input[name="father_name"]').value = 
+'Michael Johnson';
+            document.querySelector('select[name="father_status"]').value = 
+'Deceased';
+            
+document.querySelector('textarea[name="guardianship_reason"]').value = 
+'Both parents deceased in car accident. Grandmother is closest living 
+relative and has been caring for child.';
+            
+            // Powers
+            document.querySelector('#independent_no').checked = true;
+            document.querySelector('#dispense_no').checked = true;
+            
+            alert('Form filled with test data for Guardianship. Click 
+"Generate Forms" to test!');
+        }
+        
+        // Initialize with guardianship form and one minor
+        window.onload = function() {
+            selectFormType('guardianship');
+            addMinor();
+        };
+        
+        document.getElementById('gcForm').addEventListener('submit', async 
+(e) => {
+            e.preventDefault();
+            
+            // Hide previous results/errors
+            document.getElementById('result').classList.remove('active');
+            document.getElementById('error').classList.remove('active');
+            
+            // Show loading
+            document.getElementById('loading').classList.add('active');
+            document.querySelector('.submit-btn').disabled = true;
+            
+            // Get form data
+            const formData = new FormData(e.target);
+            const data = {};
+            
+            // Process form fields
+            for (let [key, value] of formData.entries()) {
+                data[key] = value;
+            }
+            
+            // Process minors data for guardianship
+            if (currentFormType === 'guardianship') {
+                const minorsData = [];
+                const minorElements = 
+document.querySelectorAll('.minor-entry');
+                minorElements.forEach(minorEl => {
+                    const id = minorEl.id.replace('minor_', '');
+                    const name = 
+document.querySelector(`input[name="minor_name_${id}"]`)?.value;
+                    const dob = 
+document.querySelector(`input[name="minor_dob_${id}"]`)?.value;
+                    const address = 
+document.querySelector(`input[name="minor_address_${id}"]`)?.value;
+                    const school = 
+document.querySelector(`input[name="minor_school_${id}"]`)?.value;
+                    
+                    if (name && dob) {
+                        
+minorsData.push(`${name},${dob},${address},${school || ''}`);
+                    }
+                });
+                data.minors_list = minorsData.join('\
+n');
+           }
+           
+           try {
+               const endpoint = currentFormType === 'guardianship' 
+                   ? '/.netlify/functions/process-guardianship'
+                   : '/.netlify/functions/process-conservatorship';
+               
+               const response = await fetch(endpoint, {
+                   method: 'POST',
+                   headers: {
+                       'Content-Type': 'application/json',
+                   },
+                   body: JSON.stringify(data)
+               });
+               
+               const result = await response.json();
+               
+               if (result.success) {
+                   generatedPDFs = result.pdfs;
+                   showDownloadCards(result.pdfs, result.metadata);
+                   
+document.getElementById('result').classList.add('active');
+               } else {
+                   throw new Error(result.error || 'Failed to generate 
+forms');
+               }
+           } catch (error) {
+               document.getElementById('error').classList.add('active');
+               document.getElementById('errorMessage').textContent = 
+error.message;
+           } finally {
+               
+document.getElementById('loading').classList.remove('active');
+               document.querySelector('.submit-btn').disabled = false;
+           }
+       });
+       
+       function showDownloadCards(pdfs, metadata) {
+           const container = document.getElementById('downloadGrid');
+           container.innerHTML = '';
+           
+           const guardianshipForms = {
+               'GC-210': 'Petition for Guardianship',
+               'GC-212': 'Confidential Screening Form',
+               'GC-240': 'Order Appointing Guardian',
+               'GC-250': 'Letters of Guardianship'
+           };
+           
+           const conservatorshipForms = {
+               'GC-310': 'Petition for Conservatorship',
+               'GC-312': 'Confidential Supplemental Information',
+               'GC-320': 'Citation for Conservatorship',
+               'GC-340': 'Order Appointing Conservator',
+               'GC-350': 'Letters of Conservatorship'
+           };
+           
+           const forms = currentFormType === 'guardianship' ? 
+guardianshipForms : conservatorshipForms;
+           
+           for (const [formId, formName] of Object.entries(forms)) {
+               if (pdfs[formId]) {
+                   const card = document.createElement('div');
+                   card.className = 'download-card';
+                   card.innerHTML = `
+                       <div class="form-number">${formId}</div>
+                       <div class="form-name">${formName}</div>
+                       <button class="download-btn" 
+onclick="downloadPDF('${formId}')">Download PDF</button>
+                   `;
+                   container.appendChild(card);
+               }
+           }
+       }
+       
+       function downloadPDF(formName) {
+           if (!generatedPDFs[formName]) {
+               alert('PDF not available. Please generate the forms 
+first.');
+               return;
+           }
+           
+           // Convert base64 to blob
+           const byteCharacters = atob(generatedPDFs[formName]);
+           const byteNumbers = new Array(byteCharacters.length);
+           for (let i = 0; i < byteCharacters.length; i++) {
+               byteNumbers[i] = byteCharacters.charCodeAt(i);
+           }
+           const byteArray = new Uint8Array(byteNumbers);
+           const blob = new Blob([byteArray], { type: 'application/pdf' 
+});
+           
+           // Create download link
+           const link = document.createElement('a');
+           link.href = window.URL.createObjectURL(blob);
+           link.download = `${formName}_${new 
+Date().toISOString().split('T')[0]}.pdf`;
+           link.click();
+           
+           // Clean up
+           window.URL.revokeObjectURL(link.href);
+       }
+   </script>
+</body>
+</html>
