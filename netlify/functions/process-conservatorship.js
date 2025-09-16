@@ -132,7 +132,7 @@ function transformConservatorshipData(webhookData) {
 async function loadPDFFromRepo(filename) {
   const fetch = (await import('node-fetch')).default;
   // IMPORTANT: Update this URL to match your deployed conservatorship app
-  const url = `https://conservatorshipformautomation.netlify.app/templates/${filename}`;
+  const url = `https://guardianshipconservatorsh.netlify.app/templates/${filename}`;
   
   try {
     console.log(`Loading ${filename} from deployed site...`);
@@ -1489,3 +1489,4 @@ exports.handler = async (event, context) => {
     };
   }
 };
+
