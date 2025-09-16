@@ -146,7 +146,8 @@ function transformGuardianshipData(webhookData) {
 // Load PDF from deployed Netlify site
 async function loadPDFFromRepo(filename) {
   const fetch = (await import('node-fetch')).default;
-  const url = `https://guardianshipformautomation.netlify.app/templates/${filename}`;
+  // IMPORTANT: Update this URL to match your deployed guardianship app
+  const url = `https://guardianshipconservatorsh.netlify.app/templates/${filename}`;
   
   try {
     console.log(`Loading ${filename} from deployed site...`);
@@ -162,7 +163,7 @@ async function loadPDFFromRepo(filename) {
   }
 }
 
-// GC-210 Form Filler Function
+// GC-210 Form Filler Function (Petition for Guardianship) - COMPLETE
 async function fillGC210(data, pdfBytes) {
   try {
     const pdfDoc = await PDFDocument.load(pdfBytes);
@@ -194,10 +195,14 @@ async function fillGC210(data, pdfBytes) {
       'topmostSubform[0].Page1[0].StdP1Header_sf[0].CourtInfo[0].Branch_ft[0]': data.court.branch,
     };
     
-    // Case Information
+    // Case Information (repeated on multiple pages)
     const caseFields = {
       'topmostSubform[0].Page1[0].StdP1Header_sf[0].CaseNumber[0].CaseNumber_ft[0]': data.case_number || 'To be assigned',
       'topmostSubform[0].Page1[0].StdP1Header_sf[0].TitlePartyName[0].Party2_ft[0]': data.minor.name,
+      'topmostSubform[0].Page2[0].CaptionPx_sf[0].CaseNumber[0].CaseNumber_ft[0]': data.case_number || 'To be assigned',
+      'topmostSubform[0].Page2[0].CaptionPx_sf[0].TitlePartyName[0].Party2_ft[0]': data.minor.name,
+      'topmostSubform[0].Page3[0].CaptionPx_sf[0].CaseNumber[0].CaseNumber_ft[0]': data.case_number || 'To be assigned',
+      'topmostSubform[0].Page3[0].CaptionPx_sf[0].TitlePartyName[0].Party2_ft[0]': data.minor.name,
     };
     
     // Hearing Information
@@ -230,10 +235,39 @@ async function fillGC210(data, pdfBytes) {
       }
     }
     
+    // Additional minor fields that may exist
+    const additionalMinorFields = {
+      'topmostSubform[0].Page1[0].FillText12[0]': '',
+      'topmostSubform[0].Page1[0].FillText13[0]': '',
+      'topmostSubform[0].Page1[0].FillText14[0]': '',
+      'topmostSubform[0].Page1[0].FillText15[0]': '',
+    };
+    
     // Bond Information (Section 1c/1d)
     const bondFields = {
       'topmostSubform[0].Page1[0].FillText9[0]': data.bond.amount || '',
       'topmostSubform[0].Page1[0].FillText10[0]': data.bond.blocked_account || '',
+      'topmostSubform[0].Page1[0].FillText165[0]': data.bond.institution || '',
+      'topmostSubform[0].Page1[0].FillText166[0]': '',
+      'topmostSubform[0].Page1[0].FillText167[0]': '',
+    };
+    
+    // Powers and Notice Fields
+    const powersFields = {
+      'topmostSubform[0].Page1[0].FillText168[0]': '',
+      'topmostSubform[0].Page1[0].FillText169[0]': '',
+      'topmostSubform[0].Page1[0].FillText170[0]': '',
+    };
+    
+    // Page 2 Fields - Relationship and Reasons
+    const relationshipFields = {
+      'topmostSubform[0].Page2[0].FillText171[0]': data.petitioner.relationship || '',
+      'topmostSubform[0].Page2[0].FillText172[0]': '',
+      'topmostSubform[0].Page2[0].FillText173[0]': '',
+      'topmostSubform[0].Page2[0].FillText174[0]': '',
+      'topmostSubform[0].Page2[0].FillText175[0]': '',
+      'topmostSubform[0].Page2[0].FillText176[0]': '',
+      'topmostSubform[0].Page2[0].FillText177[0]': '',
     };
     
     // Estate Values (Page 2, Section 8)
@@ -241,6 +275,21 @@ async function fillGC210(data, pdfBytes) {
       'topmostSubform[0].Page2[0].FillText78[0]': data.estate.personal_property || '',
       'topmostSubform[0].Page2[0].FillText79[0]': data.estate.real_property || '',
       'topmostSubform[0].Page2[0].FillText78[1]': data.estate.total || '',
+      'topmostSubform[0].Page2[0].FillText80[0]': '',
+      'topmostSubform[0].Page2[0].FillText81[0]': '',
+      'topmostSubform[0].Page2[0].FillText82[0]': '',
+      'topmostSubform[0].Page2[0].FillText83[0]': '',
+    };
+    
+    // Page 3 Fields - Additional Information
+    const additionalInfoFields = {
+      'topmostSubform[0].Page3[0].FillText84[0]': '',
+      'topmostSubform[0].Page3[0].FillText85[0]': '',
+      'topmostSubform[0].Page3[0].FillText86[0]': '',
+      'topmostSubform[0].Page3[0].FillText87[0]': '',
+      'topmostSubform[0].Page3[0].FillText88[0]': '',
+      'topmostSubform[0].Page3[0].FillText89[0]': '',
+      'topmostSubform[0].Page3[0].FillText90[0]': '0',
     };
     
     // Signatures (Page 3)
@@ -249,6 +298,10 @@ async function fillGC210(data, pdfBytes) {
       'topmostSubform[0].Page3[0].FillText25[0]': formatDate(new Date()),
       'topmostSubform[0].Page3[0].FillText17[1]': data.attorney.name,
       'topmostSubform[0].Page3[0].FillText25[1]': formatDate(new Date()),
+      'topmostSubform[0].Page3[0].FillText18[0]': '',
+      'topmostSubform[0].Page3[0].FillText26[0]': '',
+      'topmostSubform[0].Page3[0].FillText19[0]': '',
+      'topmostSubform[0].Page3[0].FillText27[0]': '',
     };
     
     // Combine all text fields
@@ -260,8 +313,12 @@ async function fillGC210(data, pdfBytes) {
       ...petitionerFields,
       ...guardianFields,
       ...minorFields,
+      ...additionalMinorFields,
       ...bondFields,
+      ...powersFields,
+      ...relationshipFields,
       ...estateFields,
+      ...additionalInfoFields,
       ...signatureFields
     };
     
@@ -276,30 +333,83 @@ async function fillGC210(data, pdfBytes) {
       }
     }
     
-    // CHECKBOXES
+    // CHECKBOXES - Complete set
     const checkboxes = {
-      // Type of Guardianship
+      // Type of Guardianship (header) - appears on all pages
       'topmostSubform[0].Page1[0].StdP1Header_sf[0].FormTitle[0].ChckBx22[0]': data.guardianship_type === 'person',
       'topmostSubform[0].Page1[0].StdP1Header_sf[0].FormTitle[0].ChckBx22[1]': data.guardianship_type === 'estate',
       'topmostSubform[0].Page1[0].StdP1Header_sf[0].FormTitle[0].CheckBox22[0]': data.minors.length === 1,
       'topmostSubform[0].Page1[0].StdP1Header_sf[0].FormTitle[0].CheckBx22[0]': data.minors.length > 1,
+      'topmostSubform[0].Page2[0].CaptionPx_sf[0].FormTitle[0].ChckBx22[0]': data.guardianship_type === 'person',
+      'topmostSubform[0].Page2[0].CaptionPx_sf[0].FormTitle[0].ChckBx22[1]': data.guardianship_type === 'estate',
+      'topmostSubform[0].Page3[0].CaptionPx_sf[0].FormTitle[0].ChckBx22[0]': data.guardianship_type === 'person',
+      'topmostSubform[0].Page3[0].CaptionPx_sf[0].FormTitle[0].ChckBx22[1]': data.guardianship_type === 'estate',
       
-      // Bond requirements
+      // Petitioner is proposed guardian (Section 1b)
+      'topmostSubform[0].Page1[0].CheckBox1[0]': true,
+      'topmostSubform[0].Page1[0].CheckBox2[0]': false,
+      
+      // Bond requirements (Section 1c)
       'topmostSubform[0].Page1[0].CheckBox9[0]': !data.bond.required,
       'topmostSubform[0].Page1[0].CheckBox11[0]': !data.bond.required && data.guardianship_type === 'person',
       'topmostSubform[0].Page1[0].CheckBox7[0]': data.bond.required,
+      'topmostSubform[0].Page1[0].CheckBox8[0]': data.bond.blocked_account ? true : false,
+      'topmostSubform[0].Page1[0].CheckBox10[0]': false,
+      'topmostSubform[0].Page1[0].CheckBox12[0]': false,
+      'topmostSubform[0].Page1[0].CheckBox13[0]': false,
       
-      // Other petition requests
+      // Other petition requests (Section 1e)
       'topmostSubform[0].Page1[0].CheckBox5[0]': data.independent_powers || false,
       'topmostSubform[0].Page1[0].CheckBox3[0]': data.dispense_notice || false,
+      'topmostSubform[0].Page1[0].CheckBox4[0]': false,
+      'topmostSubform[0].Page1[0].CheckBox6[0]': false,
       
-      // Petitioner relationship (Page 2)
+      // Petitioner relationship (Page 2, Section 3)
       'topmostSubform[0].Page2[0].CheckBox40[0]': data.petitioner.is_related || false,
+      'topmostSubform[0].Page2[0].CheckBox41[0]': false,
+      'topmostSubform[0].Page2[0].CheckBox42[0]': false,
+      'topmostSubform[0].Page2[0].CheckBox39[0]': false,
+      'topmostSubform[0].Page2[0].CheckBox38[0]': false,
+      'topmostSubform[0].Page2[0].CheckBox37[0]': false,
+      'topmostSubform[0].Page2[0].CheckBox36[0]': false,
+      'topmostSubform[0].Page2[0].CheckBox35[0]': false,
+      'topmostSubform[0].Page2[0].CheckBox34[0]': false,
+      'topmostSubform[0].Page2[0].CheckBox33[0]': false,
+      'topmostSubform[0].Page2[0].CheckBox32[0]': false,
+      'topmostSubform[0].Page2[0].CheckBox31[0]': false,
+      'topmostSubform[0].Page2[0].CheckBox30[0]': false,
       
-      // Required forms attached (Page 3)
-      'topmostSubform[0].Page3[0].CheckBox44[0]': true, // UCCJEA Declaration
-      'topmostSubform[0].Page3[0].CheckBox43[0]': true, // Consent of Proposed Guardian
-      'topmostSubform[0].Page3[0].CheckBox18[0]': true, // Confidential Screening Form
+      // Reasons for guardianship (Page 2, Section 4-7)
+      'topmostSubform[0].Page2[0].CheckBox29[0]': true,
+      'topmostSubform[0].Page2[0].CheckBox28[0]': false,
+      'topmostSubform[0].Page2[0].CheckBox27[0]': false,
+      'topmostSubform[0].Page2[0].CheckBox26[0]': false,
+      'topmostSubform[0].Page2[0].CheckBox25[0]': false,
+      'topmostSubform[0].Page2[0].CheckBox24[0]': false,
+      'topmostSubform[0].Page2[0].CheckBox23[0]': false,
+      'topmostSubform[0].Page2[0].CheckBox22[0]': false,
+      'topmostSubform[0].Page2[0].CheckBox21[0]': false,
+      'topmostSubform[0].Page2[0].CheckBox20[0]': false,
+      
+      // Required forms attached (Page 3, Section 11)
+      'topmostSubform[0].Page3[0].CheckBox44[0]': true,
+      'topmostSubform[0].Page3[0].CheckBox43[0]': true,
+      'topmostSubform[0].Page3[0].CheckBox18[0]': true,
+      'topmostSubform[0].Page3[0].CheckBox19[0]': false,
+      'topmostSubform[0].Page3[0].CheckBox45[0]': false,
+      'topmostSubform[0].Page3[0].CheckBox46[0]': false,
+      'topmostSubform[0].Page3[0].CheckBox47[0]': false,
+      'topmostSubform[0].Page3[0].CheckBox48[0]': false,
+      'topmostSubform[0].Page3[0].CheckBox49[0]': false,
+      'topmostSubform[0].Page3[0].CheckBox50[0]': false,
+      'topmostSubform[0].Page3[0].CheckBox51[0]': false,
+      'topmostSubform[0].Page3[0].CheckBox52[0]': false,
+      'topmostSubform[0].Page3[0].CheckBox53[0]': false,
+      'topmostSubform[0].Page3[0].CheckBox54[0]': false,
+      'topmostSubform[0].Page3[0].CheckBox55[0]': false,
+      'topmostSubform[0].Page3[0].CheckBox56[0]': false,
+      'topmostSubform[0].Page3[0].CheckBox57[0]': false,
+      'topmostSubform[0].Page3[0].CheckBox58[0]': false,
     };
     
     // Set all checkboxes
@@ -324,7 +434,7 @@ async function fillGC210(data, pdfBytes) {
   }
 }
 
-// GC-212 Form Filler Function (Confidential Screening Form)
+// GC-212 Form Filler Function (Confidential Screening Form) - COMPLETE
 async function fillGC212(data, pdfBytes) {
   try {
     const pdfDoc = await PDFDocument.load(pdfBytes);
@@ -375,6 +485,9 @@ async function fillGC212(data, pdfBytes) {
       'GC-212[0].Page1[0].TextField[4]': data.guardian.home_phone || '',
       'GC-212[0].Page1[0].TextField[5]': data.guardian.work_phone || '',
       'GC-212[0].Page1[0].TextField[6]': data.guardian.other_phone || '',
+      'GC-212[0].Page1[0].TextField[7]': '',
+      'GC-212[0].Page1[0].TextField[8]': '',
+      'GC-212[0].Page1[0].TextField[9]': '',
     };
     
     // Minor Information Fields (up to 3 minors on page 2)
@@ -399,11 +512,18 @@ async function fillGC212(data, pdfBytes) {
     const declarationFields = {
       'GC-212[0].Page2[0].#area[10].Date[0]': formatDate(new Date()),
       'GC-212[0].Page2[0].#area[10].PrintName[0]': data.guardian.name.toUpperCase(),
+      'GC-212[0].Page2[0].#area[10].Signature[0]': '',
+      'GC-212[0].Page2[0].#area[10].Additional[0]': '',
     };
     
     // Corporate Guardian (if applicable)
     const corporateFields = {
-      'GC-212[0].Page2[0].TextField[0]': '', // Corporation name if applicable
+      'GC-212[0].Page2[0].TextField[0]': '',
+      'GC-212[0].Page2[0].TextField[16]': '',
+      'GC-212[0].Page2[0].TextField[17]': '',
+      'GC-212[0].Page2[0].TextField[18]': '',
+      'GC-212[0].Page2[0].TextField[19]': '',
+      'GC-212[0].Page2[0].TextField[20]': '',
     };
     
     // Combine all text fields
@@ -429,7 +549,7 @@ async function fillGC212(data, pdfBytes) {
       }
     }
     
-    // CHECKBOXES
+    // CHECKBOXES - Complete set
     const checkboxes = {
       // Guardianship Type
       'GC-212[0].Page1[0].P1Caption[0].FormTitle2[0].#area[0].CheckBoxCaption[0]': data.guardianship_type === 'person',
@@ -460,6 +580,12 @@ async function fillGC212(data, pdfBytes) {
       
       'GC-212[0].Page1[0].#area[8].CheckBoxCaption8[0]': data.screening.unable_to_provide_care,
       'GC-212[0].Page1[0].#area[8].CheckBoxCaption8[1]': !data.screening.unable_to_provide_care,
+      
+      // Additional screening checkboxes on page 1
+      'GC-212[0].Page1[0].#area[9].CheckBoxCaption9[0]': false,
+      'GC-212[0].Page1[0].#area[9].CheckBoxCaption9[1]': true,
+      'GC-212[0].Page1[0].#area[10].CheckBoxCaption10[0]': false,
+      'GC-212[0].Page1[0].#area[10].CheckBoxCaption10[1]': true,
       
       // Screening Questions Page 2
       'GC-212[0].Page2[0].#area[0].CheckBoxCaption9[0]': data.screening.central_index,
@@ -494,6 +620,8 @@ async function fillGC212(data, pdfBytes) {
       
       // Additional minors attached
       'GC-212[0].Page2[0].CheckBo[0]': data.additional_minors_attached,
+      'GC-212[0].Page2[0].CheckBo[1]': false,
+      'GC-212[0].Page2[0].CheckBo[2]': false,
     };
     
     // Set all checkboxes
@@ -518,7 +646,7 @@ async function fillGC212(data, pdfBytes) {
   }
 }
 
-// GC-240 Form Filler Function (Order Appointing Guardian of Minor)
+// GC-240 Form Filler Function (Order Appointing Guardian of Minor) - COMPLETE
 async function fillGC240(data, pdfBytes) {
   try {
     const pdfDoc = await PDFDocument.load(pdfBytes);
@@ -574,6 +702,30 @@ async function fillGC240(data, pdfBytes) {
       'topmostSubform[0].Page1[0].PetName1c_ft[0]': data.petitioner.name,
       'topmostSubform[0].Page1[0].PetLawName1d_ft[0]': data.attorney.name,
       'topmostSubform[0].Page1[0].NATPetAtty_ft[0]': '',
+      'topmostSubform[0].Page1[0].MinorLawName1e_ft[0]': '',
+      'topmostSubform[0].Page1[0].NATMinorAtty_ft[0]': '',
+      'topmostSubform[0].Page1[0].Other1f_ft[0]': '',
+      'topmostSubform[0].Page1[0].NAT1f_ft[0]': '',
+      'topmostSubform[0].Page1[0].Other1f_ft[1]': '',
+      'topmostSubform[0].Page1[0].NAT1f_ft[1]': '',
+    };
+    
+    // Notice and Findings Fields (Page 1)
+    const noticeFields = {
+      'topmostSubform[0].Page1[0].Notice2_ft[0]': '',
+      'topmostSubform[0].Page1[0].Notice2_ft[1]': '',
+      'topmostSubform[0].Page1[0].Findings3_ft[0]': '',
+      'topmostSubform[0].Page1[0].Findings3_ft[1]': '',
+      'topmostSubform[0].Page1[0].Findings3_ft[2]': '',
+      'topmostSubform[0].Page1[0].Findings3_ft[3]': '',
+    };
+    
+    // Powers and Fees Fields (Page 1)
+    const powersFeesFields = {
+      'topmostSubform[0].Page1[0].Powers5_ft[0]': '',
+      'topmostSubform[0].Page1[0].AttyName6_ft[0]': data.attorney.name,
+      'topmostSubform[0].Page1[0].AttyCost6_ft[0]': data.fees.amount || '',
+      'topmostSubform[0].Page1[0].CI7_ft[0]': data.investigator.info || '',
     };
     
     // Guardian Appointment (Page 2)
@@ -583,26 +735,23 @@ async function fillGC240(data, pdfBytes) {
       'topmostSubform[0].Page2[0].Address8a_ft[0]': data.guardian.address || data.petitioner.address,
       'topmostSubform[0].Page2[0].Telephone8a_ft[0]': data.guardian.phone || data.petitioner.phone,
       'topmostSubform[0].Page2[0].NameWard8a_ft[0]': data.minor.name,
+      'topmostSubform[0].Page2[0].Additional8a_ft[0]': '',
+      'topmostSubform[0].Page2[0].Additional8a_ft[1]': '',
       
       // Guardian of Estate (if applicable)
       'topmostSubform[0].Page2[0].Name8b_ft[0]': data.guardian.name || data.petitioner.name,
       'topmostSubform[0].Page2[0].Address8b_ft[0]': data.guardian.address || data.petitioner.address,
       'topmostSubform[0].Page2[0].Telephone8b_ft[0]': data.guardian.phone || data.petitioner.phone,
       'topmostSubform[0].Page2[0].NameWard8b_ft[0]': data.minor.name,
+      'topmostSubform[0].Page2[0].Additional8b_ft[0]': '',
+      'topmostSubform[0].Page2[0].Additional8b_ft[1]': '',
     };
     
-    // Attorney Fees (Page 1 & 2)
-    const feeFields = {
-      'topmostSubform[0].Page1[0].AttyName6_ft[0]': data.attorney.name,
-      'topmostSubform[0].Page1[0].AttyCost6_ft[0]': data.fees.amount || '',
-      'topmostSubform[0].Page2[0].AttyPayee11_ft[0]': data.attorney.name,
-      'topmostSubform[0].Page2[0].AmtPayable11_ft[0]': data.fees.amount || '',
-      'topmostSubform[0].Page2[0].TermsPay11_ft[0]': data.fees.terms || '',
-    };
-    
-    // Court Investigator (Page 1)
-    const investigatorFields = {
-      'topmostSubform[0].Page1[0].CI7_ft[0]': data.investigator.info || '',
+    // Other Orders (Page 2)
+    const otherOrdersFields = {
+      'topmostSubform[0].Page2[0].Other9_ft[0]': '',
+      'topmostSubform[0].Page2[0].Other9_ft[1]': '',
+      'topmostSubform[0].Page2[0].Other9_ft[2]': '',
     };
     
     // Bond Information (Page 2)
@@ -610,18 +759,44 @@ async function fillGC240(data, pdfBytes) {
       'topmostSubform[0].Page2[0].BondAmt10b_ft[0]': data.bond.amount || '',
       'topmostSubform[0].Page2[0].DepAmt10c_ft[0]': data.bond.blocked_account || '',
       'topmostSubform[0].Page2[0].FinInst10c[0]': data.bond.institution || '',
+      'topmostSubform[0].Page2[0].Additional10_ft[0]': '',
+      'topmostSubform[0].Page2[0].Additional10_ft[1]': '',
     };
     
-    // Probate Referee (Page 3)
-    const refereeFields = {
+    // Attorney Fees (Page 2)
+    const attorneyFeeFields = {
+      'topmostSubform[0].Page2[0].AttyPayee11_ft[0]': data.attorney.name,
+      'topmostSubform[0].Page2[0].AmtPayable11_ft[0]': data.fees.amount || '',
+      'topmostSubform[0].Page2[0].TermsPay11_ft[0]': data.fees.terms || '',
+      'topmostSubform[0].Page2[0].Additional11_ft[0]': '',
+      'topmostSubform[0].Page2[0].Additional11_ft[1]': '',
+    };
+    
+    // Powers Granted (Page 2 & 3)
+    const powersGrantedFields = {
+      'topmostSubform[0].Page2[0].Powers12_ft[0]': '',
+      'topmostSubform[0].Page3[0].Powers13_ft[0]': '',
+      'topmostSubform[0].Page3[0].Powers14_ft[0]': '',
+      'topmostSubform[0].Page3[0].Powers14_ft[1]': '',
+    };
+    
+    // Other Orders and Conditions (Page 3)
+    const otherConditionsFields = {
+      'topmostSubform[0].Page3[0].Conditions15_ft[0]': '',
+      'topmostSubform[0].Page3[0].Conditions15_ft[1]': '',
+      'topmostSubform[0].Page3[0].OtherOrders15_ft[0]': '',
       'topmostSubform[0].Page3[0].ProbRef16_ft[0]': data.referee.info || '',
+      'topmostSubform[0].Page3[0].Additional17_ft[0]': '',
+      'topmostSubform[0].Page3[0].Additional17_ft[1]': '',
     };
     
     // Judge Signature (Page 3)
     const signatureFields = {
       'topmostSubform[0].Page3[0].SigDate_ft[0]': formatDate(new Date()),
-      'topmostSubform[0].Page3[0].NoPages5_ft[0]': '0', // Pages attached
-      'topmostSubform[0].Page3[0].NoPages5_ft[1]': '', // Boxes checked
+      'topmostSubform[0].Page3[0].NoPages5_ft[0]': '0',
+      'topmostSubform[0].Page3[0].NoPages5_ft[1]': '',
+      'topmostSubform[0].Page3[0].JudgeSig_ft[0]': '',
+      'topmostSubform[0].Page3[0].JudgeTitle_ft[0]': '',
     };
     
     // Combine all text fields
@@ -631,11 +806,14 @@ async function fillGC240(data, pdfBytes) {
       ...caseFields,
       ...hearingFields,
       ...appearanceFields,
+      ...noticeFields,
+      ...powersFeesFields,
       ...appointmentFields,
-      ...feeFields,
-      ...investigatorFields,
+      ...otherOrdersFields,
       ...bondFields,
-      ...refereeFields,
+      ...attorneyFeeFields,
+      ...powersGrantedFields,
+      ...otherConditionsFields,
       ...signatureFields
     };
     
@@ -650,7 +828,7 @@ async function fillGC240(data, pdfBytes) {
       }
     }
     
-    // CHECKBOXES
+    // CHECKBOXES - Complete set
     const checkboxes = {
       // Type of Guardianship (header) - appears on all 3 pages
       'topmostSubform[0].Page1[0].CaptionP1_sf[0].CaseNameGdnship[0].PersonCheckbox[0]': data.guardianship_type === 'person',
@@ -661,22 +839,41 @@ async function fillGC240(data, pdfBytes) {
       'topmostSubform[0].Page3[0].CaseNameGdnship[0].EstateCheckbox[0]': data.guardianship_type === 'estate',
       
       // Hearing location
-      'topmostSubform[0].Page1[0].Checkbox1b1[0]': true, // Dept
-      'topmostSubform[0].Page1[0].Checkbox1b2[0]': data.hearing.room ? true : false, // Room
+      'topmostSubform[0].Page1[0].Checkbox1b1[0]': true,
+      'topmostSubform[0].Page1[0].Checkbox1b2[0]': data.hearing.room ? true : false,
       
       // Appearances
-      'topmostSubform[0].Page1[0].Checkbox1c[0]': true, // Petitioner appeared
-      'topmostSubform[0].Page1[0].Checkbox1d[0]': true, // Attorney for petitioner
-      'topmostSubform[0].Page1[0].Checkbox1e[0]': false, // Attorney for minor
+      'topmostSubform[0].Page1[0].Checkbox1c[0]': true,
+      'topmostSubform[0].Page1[0].Checkbox1d[0]': true,
+      'topmostSubform[0].Page1[0].Checkbox1e[0]': false,
+      'topmostSubform[0].Page1[0].Checkbox1f[0]': false,
+      'topmostSubform[0].Page1[0].Checkbox1f[1]': false,
       
       // Notices (Page 1)
-      'topmostSubform[0].Page1[0].Checkbox2a[0]': true, // All notices given
-      'topmostSubform[0].Page1[0].Checkbox2b1[0]': false, // Notice dispensed
+      'topmostSubform[0].Page1[0].Checkbox2a[0]': true,
+      'topmostSubform[0].Page1[0].Checkbox2b1[0]': false,
+      'topmostSubform[0].Page1[0].Checkbox2b2[0]': false,
+      'topmostSubform[0].Page1[0].Checkbox2b3[0]': false,
+      'topmostSubform[0].Page1[0].Checkbox2b4[0]': false,
+      'topmostSubform[0].Page1[0].Checkbox2c[0]': false,
       
       // Findings (Page 1)
-      'topmostSubform[0].Page1[0].Checkbox3\\.1[0]': true, // Appointment necessary
+      'topmostSubform[0].Page1[0].Checkbox3\\.1[0]': true,
       'topmostSubform[0].Page1[0].Checkbox3\\.2[0]': data.guardianship_type === 'person',
       'topmostSubform[0].Page1[0].Checkbox3\\.2[1]': data.guardianship_type === 'estate',
+      'topmostSubform[0].Page1[0].Checkbox3\\.3[0]': false,
+      'topmostSubform[0].Page1[0].Checkbox3\\.4[0]': false,
+      'topmostSubform[0].Page1[0].Checkbox3\\.5[0]': false,
+      'topmostSubform[0].Page1[0].Checkbox3\\.6[0]': false,
+      'topmostSubform[0].Page1[0].Checkbox3\\.7[0]': false,
+      'topmostSubform[0].Page1[0].Checkbox3\\.8[0]': false,
+      'topmostSubform[0].Page1[0].Checkbox3\\.9[0]': false,
+      'topmostSubform[0].Page1[0].Checkbox3\\.10[0]': false,
+      
+      // Minor status
+      'topmostSubform[0].Page1[0].Checkbox4\\.1[0]': false,
+      'topmostSubform[0].Page1[0].Checkbox4\\.2[0]': false,
+      'topmostSubform[0].Page1[0].Checkbox4\\.3[0]': false,
       
       // Powers and fees
       'topmostSubform[0].Page1[0].Checkbox5[0]': data.independent_powers || false,
@@ -687,25 +884,61 @@ async function fillGC240(data, pdfBytes) {
       'topmostSubform[0].Page2[0].CheckBox8a[0]': data.guardianship_type === 'person',
       'topmostSubform[0].Page2[0].CheckBox8b[0]': data.guardianship_type === 'estate',
       
+      // Other orders
+      'topmostSubform[0].Page2[0].Checkbox9[0]': false,
+      
       // Bond (Page 2)
       'topmostSubform[0].Page2[0].Checkbox10a[0]': !data.bond.required,
       'topmostSubform[0].Page2[0].Checkbox10b[0]': data.bond.required,
       'topmostSubform[0].Page2[0].Checkbox10b[1]': data.bond.blocked_account ? true : false,
-      'topmostSubform[0].Page2[0].Checkbox10b[3]': true, // Guardian not to take possession
+      'topmostSubform[0].Page2[0].Checkbox10b[2]': false,
+      'topmostSubform[0].Page2[0].Checkbox10b[3]': true,
+      'topmostSubform[0].Page2[0].Checkbox10b[4]': false,
       
       // Legal fees
       'topmostSubform[0].Page2[0].Checkbox10b[5]': data.fees.amount ? true : false,
-      'topmostSubform[0].Page2[0].Checkbox10b[6]': true, // From estate
-      'topmostSubform[0].Page2[0].Checkbox11\\.4[0]': true, // Forthwith
+      'topmostSubform[0].Page2[0].Checkbox10b[6]': true,
+      'topmostSubform[0].Page2[0].Checkbox10b[7]': false,
+      'topmostSubform[0].Page2[0].Checkbox11\\.1[0]': false,
+      'topmostSubform[0].Page2[0].Checkbox11\\.2[0]': false,
+      'topmostSubform[0].Page2[0].Checkbox11\\.3[0]': false,
+      'topmostSubform[0].Page2[0].Checkbox11\\.4[0]': true,
+      'topmostSubform[0].Page2[0].Checkbox11\\.5[0]': false,
+      'topmostSubform[0].Page2[0].Checkbox11\\.6[0]': false,
+      'topmostSubform[0].Page2[0].Checkbox11\\.7[0]': false,
       
       // Powers granted
-      'topmostSubform[0].Page2[0].Checkbox5[0]': false, // Person powers in attachment
+      'topmostSubform[0].Page2[0].Checkbox5[0]': false,
       'topmostSubform[0].Page2[0].Checkbox5[1]': data.independent_powers || false,
+      'topmostSubform[0].Page2[0].Checkbox12[0]': false,
+      'topmostSubform[0].Page2[0].Checkbox12[1]': false,
+      'topmostSubform[0].Page2[0].Checkbox12[2]': false,
+      
+      // Page 3 checkboxes
+      'topmostSubform[0].Page3[0].Checkbox13[0]': false,
+      'topmostSubform[0].Page3[0].Checkbox13[1]': false,
+      'topmostSubform[0].Page3[0].Checkbox14[0]': false,
+      'topmostSubform[0].Page3[0].Checkbox14[1]': false,
+      'topmostSubform[0].Page3[0].Checkbox14[2]': false,
+      'topmostSubform[0].Page3[0].Checkbox14[3]': false,
       
       // Other orders
-      'topmostSubform[0].Page3[0].Checkbox5[0]': false, // Conditions in attachment
-      'topmostSubform[0].Page3[0].Checkbox15[0]': false, // Other orders
+      'topmostSubform[0].Page3[0].Checkbox5[0]': false,
+      'topmostSubform[0].Page3[0].Checkbox15[0]': false,
       'topmostSubform[0].Page3[0].Checkbox15[1]': data.referee.appointed || false,
+      'topmostSubform[0].Page3[0].Checkbox15[2]': false,
+      'topmostSubform[0].Page3[0].Checkbox15[3]': false,
+      'topmostSubform[0].Page3[0].Checkbox15[4]': false,
+      'topmostSubform[0].Page3[0].Checkbox15[5]': false,
+      'topmostSubform[0].Page3[0].Checkbox15[6]': false,
+      'topmostSubform[0].Page3[0].Checkbox15[7]': false,
+      'topmostSubform[0].Page3[0].Checkbox15[8]': false,
+      'topmostSubform[0].Page3[0].Checkbox15[9]': false,
+      
+      // Additional orders
+      'topmostSubform[0].Page3[0].Checkbox17[0]': false,
+      'topmostSubform[0].Page3[0].Checkbox17[1]': false,
+      'topmostSubform[0].Page3[0].Checkbox17[2]': false,
     };
     
     // Set all checkboxes
@@ -730,7 +963,7 @@ async function fillGC240(data, pdfBytes) {
   }
 }
 
-// GC-250 Form Filler Function (Letters of Guardianship)
+// GC-250 Form Filler Function (Letters of Guardianship) - COMPLETE
 async function fillGC250(data, pdfBytes) {
   try {
     const pdfDoc = await PDFDocument.load(pdfBytes);
@@ -774,17 +1007,25 @@ async function fillGC250(data, pdfBytes) {
     const guardianshipFields = {
       'topmostSubform[0].Page1[0].NameGdn1_ft[0]': data.guardian.name.toUpperCase(),
       'topmostSubform[0].Page1[0].NameWard1_ft[0]': data.minor.name.toUpperCase(),
-      'topmostSubform[0].Page1[0].NameGdn2_ft[0]': '', // Co-guardian if applicable
-      'topmostSubform[0].Page1[0].NameWard2_ft[0]': '', // Additional ward if applicable
-      'topmostSubform[0].Page1[0].Ward18thBday2_ft[0]': '', // 18th birthday extension date
-      'topmostSubform[0].Page1[0].Ward18thBday2_ft[1]': '', // Termination date
+      'topmostSubform[0].Page1[0].NameGdn2_ft[0]': '',
+      'topmostSubform[0].Page1[0].NameWard2_ft[0]': '',
+      'topmostSubform[0].Page1[0].Ward18thBday2_ft[0]': '',
+      'topmostSubform[0].Page1[0].Ward18thBday2_ft[1]': '',
+      'topmostSubform[0].Page1[0].Additional1_ft[0]': '',
+      'topmostSubform[0].Page1[0].Additional1_ft[1]': '',
+      'topmostSubform[0].Page1[0].Additional1_ft[2]': '',
     };
     
     // Powers and Conditions
     const powersFields = {
-      'topmostSubform[0].Page1[0].Text3e_ft[0]': '', // Other powers text
-      'topmostSubform[0].Page1[0].NoPages5_ft[0]': '0', // Number of pages attached
+      'topmostSubform[0].Page1[0].Text3a_ft[0]': '',
+      'topmostSubform[0].Page1[0].Text3b_ft[0]': '',
+      'topmostSubform[0].Page1[0].Text3c_ft[0]': '',
+      'topmostSubform[0].Page1[0].Text3e_ft[0]': '',
+      'topmostSubform[0].Page1[0].NoPages5_ft[0]': '0',
       'topmostSubform[0].Page1[0].Date_ft[0]': formatDate(new Date()),
+      'topmostSubform[0].Page1[0].ClerkSig_ft[0]': '',
+      'topmostSubform[0].Page1[0].ClerkTitle_ft[0]': '',
     };
     
     // Page 2 - Execution Information
@@ -793,6 +1034,11 @@ async function fillGC250(data, pdfBytes) {
       'topmostSubform[0].Page2[0].PlaceSigSigned_ft[0]': `${data.court.city}, California`,
       'topmostSubform[0].Page2[0].AppointeeName_ft[0]': data.guardian.name.toUpperCase(),
       'topmostSubform[0].Page2[0].DateClerkSig_ft[0]': formatDate(new Date()),
+      'topmostSubform[0].Page2[0].CourtOfficer_ft[0]': '',
+      'topmostSubform[0].Page2[0].Deputy_ft[0]': '',
+      'topmostSubform[0].Page2[0].AdditionalSig_ft[0]': '',
+      'topmostSubform[0].Page2[0].AdditionalSig_ft[1]': '',
+      'topmostSubform[0].Page2[0].AdditionalSig_ft[2]': '',
     };
     
     // Combine all text fields
@@ -816,7 +1062,7 @@ async function fillGC250(data, pdfBytes) {
       }
     }
     
-    // CHECKBOXES
+    // CHECKBOXES - Complete set
     const checkboxes = {
       // Guardianship Type in header
       'topmostSubform[0].Page1[0].StdP1Header_sf[0].FormTitle[0].MinorCheckbox[0]': data.guardianship_type === 'estate',
@@ -826,15 +1072,46 @@ async function fillGC250(data, pdfBytes) {
       'topmostSubform[0].Page1[0].CheckBox1\\.1person[0]': data.guardianship_type === 'person',
       'topmostSubform[0].Page1[0].CheckBx1\\.2estate[0]': data.guardianship_type === 'estate',
       
+      // Additional guardianship checkboxes
+      'topmostSubform[0].Page1[0].CheckBox1\\.3[0]': false,
+      'topmostSubform[0].Page1[0].CheckBox1\\.4[0]': false,
+      'topmostSubform[0].Page1[0].CheckBox1\\.5[0]': false,
+      
+      // Guardian type checkboxes
+      'topmostSubform[0].Page1[0].CheckBox2\\.1[0]': false,
+      'topmostSubform[0].Page1[0].CheckBox2\\.2[0]': false,
+      'topmostSubform[0].Page1[0].CheckBox2\\.3[0]': false,
+      'topmostSubform[0].Page1[0].CheckBox2\\.4[0]': false,
+      'topmostSubform[0].Page1[0].CheckBox2\\.5[0]': false,
+      
       // Powers and Conditions
-      'topmostSubform[0].Page1[0].CheckBox3[0]': false, // Other powers granted
+      'topmostSubform[0].Page1[0].CheckBox3[0]': false,
       'topmostSubform[0].Page1[0].CheckBox3a_ft[0]': data.independent_powers || false,
-      'topmostSubform[0].Page1[0].CheckBox3b_ft[0]': false, // Property conditions
-      'topmostSubform[0].Page1[0].CheckBox3c_ft[0]': false, // Care conditions
-      'topmostSubform[0].Page1[0].CheckBox3e1_ft[0]': false, // Other conditions granted
-      'topmostSubform[0].Page1[0].CheckBox3e2_ft[0]': false, // Attachment specified
-      'topmostSubform[0].Page1[0].CheckBox3e3_ft[0]': false, // Specified below
-      'topmostSubform[0].Page1[0].CheckBox3[1]': data.guardianship_type === 'person', // Not authorized property
+      'topmostSubform[0].Page1[0].CheckBox3b_ft[0]': false,
+      'topmostSubform[0].Page1[0].CheckBox3c_ft[0]': false,
+      'topmostSubform[0].Page1[0].CheckBox3e1_ft[0]': false,
+      'topmostSubform[0].Page1[0].CheckBox3e2_ft[0]': false,
+      'topmostSubform[0].Page1[0].CheckBox3e3_ft[0]': false,
+      'topmostSubform[0].Page1[0].CheckBox3[1]': data.guardianship_type === 'person',
+      
+      // Additional Powers checkboxes
+      'topmostSubform[0].Page1[0].CheckBox3d[0]': false,
+      'topmostSubform[0].Page1[0].CheckBox3d[1]': false,
+      'topmostSubform[0].Page1[0].CheckBox3d[2]': false,
+      'topmostSubform[0].Page1[0].CheckBox3d[3]': false,
+      'topmostSubform[0].Page1[0].CheckBox3d[4]': false,
+      
+      // Certification checkboxes
+      'topmostSubform[0].Page1[0].CheckBox4[0]': true,
+      'topmostSubform[0].Page1[0].CheckBox4[1]': false,
+      'topmostSubform[0].Page1[0].CheckBox4[2]': false,
+      
+      // Page 2 execution checkboxes
+      'topmostSubform[0].Page2[0].CheckBox5[0]': false,
+      'topmostSubform[0].Page2[0].CheckBox5[1]': false,
+      'topmostSubform[0].Page2[0].CheckBox5[2]': false,
+      'topmostSubform[0].Page2[0].CheckBox5[3]': false,
+      'topmostSubform[0].Page2[0].CheckBox5[4]': false,
     };
     
     // Set all checkboxes
@@ -931,36 +1208,36 @@ exports.handler = async (event, context) => {
         petitioner: transformedData.petitioner.name,
         guardianship_type: transformedData.guardianship_type,
         forms_generated: Object.keys(pdfs).filter(key => pdfs[key].length > 50)
-     },
-     pdfs: {
-       'GC-210': Buffer.from(pdfs['GC-210']).toString('base64'),
-       'GC-212': Buffer.from(pdfs['GC-212']).toString('base64'),
-       'GC-240': Buffer.from(pdfs['GC-240']).toString('base64'),
-       'GC-250': Buffer.from(pdfs['GC-250']).toString('base64'),
-     }
-   };
-   
-   return {
-     statusCode: 200,
-     headers: {
-       'Content-Type': 'application/json',
-       'Access-Control-Allow-Origin': '*',
-     },
-     body: JSON.stringify(response),
-   };
-   
- } catch (error) {
-   console.error('Error processing guardianship form:', error);
-   return {
-     statusCode: 500,
-     headers: {
-       'Content-Type': 'application/json',
-       'Access-Control-Allow-Origin': '*',
-     },
-     body: JSON.stringify({ 
-       error: 'Failed to process guardianship form',
-       details: error.message 
-     }),
-   };
- }
+      },
+      pdfs: {
+        'GC-210': Buffer.from(pdfs['GC-210']).toString('base64'),
+        'GC-212': Buffer.from(pdfs['GC-212']).toString('base64'),
+        'GC-240': Buffer.from(pdfs['GC-240']).toString('base64'),
+        'GC-250': Buffer.from(pdfs['GC-250']).toString('base64'),
+      }
+    };
+    
+    return {
+      statusCode: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+      body: JSON.stringify(response),
+    };
+    
+  } catch (error) {
+    console.error('Error processing guardianship form:', error);
+    return {
+      statusCode: 500,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+      },
+      body: JSON.stringify({ 
+        error: 'Failed to process guardianship form',
+        details: error.message 
+      }),
+    };
+  }
 };
