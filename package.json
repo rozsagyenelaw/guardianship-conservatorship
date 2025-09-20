@@ -8,18 +8,23 @@
     "test": "node test-local.js"
   },
   "dependencies": {
+<<<<<<< Updated upstream
     "@mui/material": "^5.14.0",
     "@emotion/react": "^11.11.0",
     "@emotion/styled": "^11.11.0",
     "pdf-lib": "^1.17.1",
     "node-fetch": "^2.6.7"
+=======
+    "node-fetch": "^2.6.7",
+    "pdf-lib": "^1.17.1"
+>>>>>>> Stashed changes
   },
   "devDependencies": {
     "netlify-cli": "^17.10.1"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/rozsagyenelaw/guardianship-conservatorship.git"
+    "url": "git+https://github.com/rozsagyenelaw/guardianship-conservatorship.git"
   },
   "keywords": [
     "guardianship",
@@ -33,5 +38,9 @@
     "gc-forms"
   ],
   "author": "Rozsa Gyene Law",
-  "license": "MIT"
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/rozsagyenelaw/guardianship-conservatorship/issues"
+  },
+  "homepage": "https://github.com/rozsagyenelaw/guardianship-conservatorship#readme"
 }
